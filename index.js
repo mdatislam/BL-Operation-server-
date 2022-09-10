@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+//console.log(uri);
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -22,15 +22,11 @@ async function run() {
   try {
     await client.connect();
     const userCollection = client.db("BL-Operation").collection("user");
-    const serviceCollection = client.db("BL-Operation").collection("service");
+    const pgRunDataCollection = client.db("BL-Operation").collection("pgRunData");
 
-    app.get("/services", async (req, res) => {
-      const service = req.body;
-      const result = await serviceCollection.find().toArray();
-      res.send(result);
-    });
+    
 
-    // get user info API
+    // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const userUpdate = req.body;
@@ -49,17 +45,29 @@ async function run() {
       );
       res.send({ result, accessToken: token });
     });
+
+    // pgRunData update into data base API
+    app.post('/pgRunData', async (req, res) => {
+      const pgData = req.body
+      //console.log(pgData)
+      const result = await pgRunDataCollection.insertOne(pgData)
+      res.send(result)
+    })
+
+    app.get('/pgRunList',async(req,res)=>{
+      const email = req.query.email
+      //console.log(email)
+      const filter= {email:email}
+      const result = await pgRunDataCollection.find(filter).toArray()
+      res.send(result)
+    })
+
   } finally {
   }
 }
 run().catch(console.dir);
 
-/* client.connect((err) => {
-  const collection = client.db("test").collection("devices");
-  // perform actions on the collection object
-    console.log('cccc')
-  client.close();
-}); */
+
 
 app.get("/", (req, res) => {
   res.send("we are tiger from Rangpur");
