@@ -62,6 +62,19 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/ApprovalList',async(req,res)=>{
+      const email = req.query.email;
+      const filter = { onCallEmail: email };
+      //console.log(filter)
+      const result = await pgRunDataCollection.find(filter).toArray();
+      res.send(result);
+    })
+
+    app.get('/userList', async (req, res) => {
+      const result = await userCollection.find().toArray()
+      res.send(result)
+    })
+
   } finally {
   }
 }
