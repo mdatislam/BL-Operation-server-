@@ -25,6 +25,9 @@ async function run() {
     const pgRunDataCollection = client
       .db("BL-Operation")
       .collection("pgRunData");
+       const fuelDataCollection = client
+         .db("BL-Operation")
+         .collection("fuelData");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -54,11 +57,26 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/fuelData", async (req, res) => {
+      const fuelData = req.body;
+      //console.log(pgData)
+      const result = await fuelDataCollection.insertOne(fuelData);
+      res.send(result);
+    });
+
     app.get("/pgRunAllList",async (req,res) => {
       const email = req.query.email;;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
       const result = await pgRunDataCollection.find(filter).toArray();
+      res.send(result);
+    });
+
+    app.get("/fuelList",async (req,res) => {
+      const email = req.query.email;;
+      //console.log(email)
+      const filter = { fuelReceiverEmail: email };
+      const result = await fuelDataCollection.find(filter).toArray();
       res.send(result);
     });
 
