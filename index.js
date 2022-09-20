@@ -10,6 +10,9 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+//https://enigmatic-eyrie-94440.herokuapp.com
+// http://localhost:5000
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
 const client = new MongoClient(uri, {
@@ -18,6 +21,21 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  // console.log(authHeader)
+  if (!authHeader) {
+ return res.status(401).send({ message: "unauthorize access" });
+  }
+  const token = authHeader.split(" ")[1]
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+     if (err) {
+       return res.status(403).send({ message: "access forbidden" });
+     }
+     req.decoded = decoded;
+     next();
+  });
+}
 async function run() {
   try {
     await client.connect();
@@ -39,25 +57,25 @@ async function run() {
         $set: userUpdate,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign(
+      const accessToken = jwt.sign(
         {
           email: email,
         },
         process.env.ACCESS_TOKEN,
         { expiresIn: "1h" }
       );
-      res.send({ result, accessToken: token });
+      res.send({ result, accessToken: accessToken });
     });
 
     // pgRunData update into data base API
-    app.post("/pgRunData", async (req, res) => {
+    app.post("/pgRunData", verifyJWT,async (req, res) => {
       const pgData = req.body;
       //console.log(pgData)
       const result = await pgRunDataCollection.insertOne(pgData);
       res.send(result);
     });
 
-    app.post("/fuelData", async (req, res) => {
+    app.post("/fuelData", verifyJWT,async (req, res) => {
       const fuelData = req.body;
       //console.log(pgData)
       const result = await fuelDataCollection.insertOne(fuelData);
@@ -72,6 +90,9 @@ async function run() {
       res.send(result);
     });
 
+    
+
+
     app.get("/fuelList",async (req,res) => {
       const email = req.query.email;;
       //console.log(email)
@@ -80,7 +101,7 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/pgRunList/:id", async (req, res) => {
+    app.put("/pgRunList/:id",verifyJWT, async (req, res) => {
       const id = req.params.id;
       const approvalInfo = req.body;
       const filter = { _id: ObjectId(id) };
@@ -96,7 +117,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/ApprovalList", async (req, res) => {
+    app.get("/ApprovalList",verifyJWT, async (req, res) => {
       const email = req.query.email;
       const filter = {
         onCallEmail: email,
