@@ -62,7 +62,7 @@ async function run() {
           email: email,
         },
         process.env.ACCESS_TOKEN,
-        { expiresIn: "1h" }
+        { expiresIn: "3h" }
       );
       res.send({ result, accessToken: accessToken });
     });
@@ -82,7 +82,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/pgRunAllList",async (req,res) => {
+    app.get("/pgRunAllList",verifyJWT,async (req,res) => {
       const email = req.query.email;;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
@@ -90,14 +90,23 @@ async function run() {
       res.send(result);
     });
 
-    
+    app.get("/pgRunAll",verifyJWT,async (req,res) => {
+      const filter ={status:"Approved"}
+      const result = await pgRunDataCollection.find(filter).toArray();
+      res.send(result);
+    });
 
 
-    app.get("/fuelList",async (req,res) => {
-      const email = req.query.email;;
+    app.get("/fuelList",verifyJWT, async (req,res) => {
+      const email = req.query.email;
       //console.log(email)
-      const filter = { fuelReceiverEmail: email };
+      const filter = {fuelReceiverEmail: email };
       const result = await fuelDataCollection.find(filter).toArray();
+      res.send(result);
+    });
+
+    app.get("/fuelListAll",verifyJWT, async (req,res) => {
+      const result = await fuelDataCollection.find({}).toArray();
       res.send(result);
     });
 
