@@ -137,7 +137,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/userList", async (req, res) => {
+    app.get("/userList",verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
