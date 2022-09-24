@@ -45,7 +45,11 @@ async function run() {
       .collection("pgRunData");
        const fuelDataCollection = client
          .db("BL-Operation")
-         .collection("fuelData");
+      .collection("fuelData");
+     const EMDataCollection = client
+       .db("BL-Operation")
+      .collection("EMData");
+    const capacityCollection = client.db("BL-Operation").collection("capacity");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -136,6 +140,62 @@ async function run() {
       const result = await pgRunDataCollection.find(filter).toArray();
       res.send(result);
     });
+
+    app.get("/emInfo",verifyJWT, async (req, res) => {
+      const result = await EMDataCollection.find({}).toArray()
+      res.send(result)
+    })
+
+    app.put('/emInfo/:siteID',verifyJWT, async (req, res) => {
+      const siteNo = req.params.siteID
+      //console.log(siteNo)
+      const updateInfo = req.body
+      const filter= {siteId:siteNo}
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: updateInfo,
+      };
+      const result = await EMDataCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    })
+
+    app.put("/rectifierModule/capacity", verifyJWT, async (req, res) => {
+      const ff = req.query.value
+      console.log(ff)
+      const updateInfo = req.body
+      console.log(updateInfo)
+      const filter ={value:ff}
+       const options = { upsert: true };
+       const updateDoc = {
+         $set: updateInfo,
+       };
+       const result =await capacityCollection.updateOne(
+         filter,
+         updateDoc,
+         options
+       );
+       res.send(result);
+    })
+
+    app.delete("/pgRun/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id 
+      //console.log(id)
+      const filter = { _id: ObjectId(id) }
+      const result = await pgRunDataCollection.deleteOne(filter)
+      res.send(result)
+    })
+
+    app.get("/user/admin/:email", async (req, res) => {
+      const requesterEmail = req.params.email 
+      const filter = { email: requesterEmail }
+      const user = await userCollection.findOne(filter)
+      const isAdmin = user.role === "Admin"
+      res.send({admin:isAdmin})
+    })
 
     app.get("/userList",verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
