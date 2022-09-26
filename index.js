@@ -49,7 +49,8 @@ async function run() {
      const EMDataCollection = client
        .db("BL-Operation")
       .collection("EMData");
-    const capacityCollection = client.db("BL-Operation").collection("capacity");
+    const rectifierCollection = client.db("BL-Operation").collection("rectifier");
+    
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -163,22 +164,29 @@ async function run() {
       res.send(result);
     })
 
-    app.put("/rectifierModule/capacity", verifyJWT, async (req, res) => {
-      const ff = req.query.value
-      console.log(ff)
-      const updateInfo = req.body
-      console.log(updateInfo)
-      const filter ={value:ff}
-       const options = { upsert: true };
+    app.put("/rectifier", verifyJWT, async(req,res)=> {
+      const brandInfo = req.query.brand
+      //console.log(brandInfo)
+      const rectifierInfo = req.body
+     // console.log(rectifierInfo)
+     const filter={brand:brandInfo}
+     const options = { upsert: true };
        const updateDoc = {
-         $set: updateInfo,
+         $set: rectifierInfo,
        };
-       const result =await capacityCollection.updateOne(
+       const result =await rectifierCollection.updateOne(
          filter,
          updateDoc,
          options
        );
-       res.send(result);
+      res.send(result)
+    })
+    
+    
+
+     app.get("/rectifier", verifyJWT, async (req, res) => {
+      const result = await rectifierCollection.find({}).toArray()
+      res.send(result)
     })
 
     app.delete("/pgRun/:id", verifyJWT, async (req, res) => {
