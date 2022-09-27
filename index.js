@@ -147,12 +147,13 @@ async function run() {
       res.send(result)
     })
 
-    app.put('/emInfo/:siteID',verifyJWT, async (req, res) => {
-      const siteNo = req.params.siteID
-      //console.log(siteNo)
-      const updateInfo = req.body
-      const filter= {siteId:siteNo}
-      const options = { upsert: true }
+    app.put("/emInfo/:siteID", verifyJWT, async (req, res) => {
+      const siteNo = req.params.siteID;
+      //console.log(siteNo);
+      const updateInfo = req.body;
+      //console.log(updateInfo)
+      const filter = { siteId: siteNo };
+      const options = { upsert: true };
       const updateDoc = {
         $set: updateInfo,
       };
@@ -162,7 +163,7 @@ async function run() {
         options
       );
       res.send(result);
-    })
+    });
 
     app.put("/rectifier", verifyJWT, async(req,res)=> {
       const brandInfo = req.query.brand
@@ -194,6 +195,14 @@ async function run() {
       //console.log(id)
       const filter = { _id: ObjectId(id) }
       const result = await pgRunDataCollection.deleteOne(filter)
+      res.send(result)
+    })
+
+    app.delete("/receivedFuel/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id 
+      //console.log(id)
+      const filter = { _id: ObjectId(id) }
+      const result = await fuelDataCollection.deleteOne(filter)
       res.send(result)
     })
 
