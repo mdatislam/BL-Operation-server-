@@ -50,6 +50,9 @@ async function run() {
        .db("BL-Operation")
       .collection("EMData");
     const rectifierCollection = client.db("BL-Operation").collection("rectifier");
+     const dgServicingCollection = client
+       .db("BL-Operation")
+       .collection("dgService");
     
 
     // get user info API & token issue API
@@ -164,6 +167,29 @@ async function run() {
       );
       res.send(result);
     });
+
+     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
+       const result = await dgServicingCollection.find({}).toArray();
+       res.send(result);
+     });
+    
+     app.put("/dgServiceInfo/:siteID", verifyJWT, async (req, res) => {
+       const siteNo = req.params.siteID;
+       //console.log(siteNo);
+       const updateInfo = req.body;
+       //console.log(updateInfo)
+       const filter = { siteId: siteNo };
+       const options = { upsert: true };
+       const updateDoc = {
+         $set: updateInfo,
+       };
+       const result = await dgServicingCollection.updateOne(
+         filter,
+         updateDoc,
+         options
+       );
+       res.send(result);
+     });
 
     app.put("/rectifier", verifyJWT, async(req,res)=> {
       const brandInfo = req.query.brand
