@@ -43,17 +43,20 @@ async function run() {
     const pgRunDataCollection = client
       .db("BL-Operation")
       .collection("pgRunData");
-       const fuelDataCollection = client
-         .db("BL-Operation")
-      .collection("fuelData");
-     const EMDataCollection = client
-       .db("BL-Operation")
-      .collection("EMData");
-    const rectifierCollection = client.db("BL-Operation").collection("rectifier");
-     const dgServicingCollection = client
-       .db("BL-Operation")
-       .collection("dgService");
-    
+    const fuelDataCollection = client.db("BL-Operation").collection("fuelData");
+    const EMDataCollection = client.db("BL-Operation").collection("EMData");
+    const rectifierCollection = client
+      .db("BL-Operation")
+      .collection("rectifier");
+    const dgServicingCollection = client
+      .db("BL-Operation")
+      .collection("dgService");
+    const dgRefuelingCollection = client
+      .db("BL-Operation")
+      .collection("dgRefueling");
+    const dgAllRefuelingCollection = client
+      .db("BL-Operation")
+      .collection("dgAllRefueling");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -76,49 +79,48 @@ async function run() {
     });
 
     // pgRunData update into data base API
-    app.post("/pgRunData", verifyJWT,async (req, res) => {
+    app.post("/pgRunData", verifyJWT, async (req, res) => {
       const pgData = req.body;
       //console.log(pgData)
       const result = await pgRunDataCollection.insertOne(pgData);
       res.send(result);
     });
 
-    app.post("/fuelData", verifyJWT,async (req, res) => {
+    app.post("/fuelData", verifyJWT, async (req, res) => {
       const fuelData = req.body;
       //console.log(pgData)
       const result = await fuelDataCollection.insertOne(fuelData);
       res.send(result);
     });
 
-    app.get("/pgRunAllList",verifyJWT,async (req,res) => {
-      const email = req.query.email;;
+    app.get("/pgRunAllList", verifyJWT, async (req, res) => {
+      const email = req.query.email;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
       const result = await pgRunDataCollection.find(filter).toArray();
       res.send(result);
     });
 
-    app.get("/pgRunAll",verifyJWT,async (req,res) => {
-      const filter ={status:"Approved"}
+    app.get("/pgRunAll", verifyJWT, async (req, res) => {
+      const filter = { status: "Approved" };
       const result = await pgRunDataCollection.find(filter).toArray();
       res.send(result);
     });
 
-
-    app.get("/fuelList",verifyJWT, async (req,res) => {
+    app.get("/fuelList", verifyJWT, async (req, res) => {
       const email = req.query.email;
       //console.log(email)
-      const filter = {fuelReceiverEmail: email };
+      const filter = { fuelReceiverEmail: email };
       const result = await fuelDataCollection.find(filter).toArray();
       res.send(result);
     });
 
-    app.get("/fuelListAll",verifyJWT, async (req,res) => {
+    app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection.find({}).toArray();
       res.send(result);
     });
 
-    app.put("/pgRunList/:id",verifyJWT, async (req, res) => {
+    app.put("/pgRunList/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const approvalInfo = req.body;
       const filter = { _id: ObjectId(id) };
@@ -134,7 +136,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/ApprovalList",verifyJWT, async (req, res) => {
+    app.get("/ApprovalList", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const filter = {
         onCallEmail: email,
@@ -145,10 +147,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/emInfo",verifyJWT, async (req, res) => {
-      const result = await EMDataCollection.find({}).toArray()
-      res.send(result)
-    })
+    app.get("/emInfo", verifyJWT, async (req, res) => {
+      const result = await EMDataCollection.find({}).toArray();
+      res.send(result);
+    });
 
     app.put("/emInfo/:siteID", verifyJWT, async (req, res) => {
       const siteNo = req.params.siteID;
@@ -168,79 +170,120 @@ async function run() {
       res.send(result);
     });
 
-     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
-       const result = await dgServicingCollection.find({}).toArray();
-       res.send(result);
-     });
-    
-     app.put("/dgServiceInfo/:siteID", verifyJWT, async (req, res) => {
-       const siteNo = req.params.siteID;
-       //console.log(siteNo);
-       const updateInfo = req.body;
-       //console.log(updateInfo)
-       const filter = { siteId: siteNo };
-       const options = { upsert: true };
-       const updateDoc = {
-         $set: updateInfo,
-       };
-       const result = await dgServicingCollection.updateOne(
-         filter,
-         updateDoc,
-         options
-       );
-       res.send(result);
-     });
+    app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
+      const result = await dgServicingCollection.find({}).toArray();
+      res.send(result);
+    });
 
-    app.put("/rectifier", verifyJWT, async(req,res)=> {
-      const brandInfo = req.query.brand
+    app.put("/dgServiceInfo/:siteID", verifyJWT, async (req, res) => {
+      const siteNo = req.params.siteID;
+      //console.log(siteNo);
+      const updateInfo = req.body;
+      //console.log(updateInfo)
+      const filter = { siteId: siteNo };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: updateInfo,
+      };
+      const result = await dgServicingCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    //DG Last ReFueling collection api
+    app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
+      const result = await dgRefuelingCollection.find({}).toArray();
+      res.send(result);
+    });
+    //DG Last ReFueling collection api
+    app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
+      const result = await dgRefuelingCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    app.put("/dgRefuelingInfo/:siteID", verifyJWT, async (req, res) => {
+      const siteNo = req.params.siteID;
+      //console.log(siteNo);
+      const updateInfo = req.body;
+      //console.log(updateInfo)
+      const filter = { siteId: siteNo };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: updateInfo,
+      };
+      const result = await dgRefuelingCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    //For  Dg all ReFueling collection api
+    app.post("/dgAllRefueling", verifyJWT, async (req, res) => {
+      const refuel = req.body;
+      //console.log(refuel)
+      const result = await dgAllRefuelingCollection.insertOne(refuel);
+      res.send(result);
+    });
+
+    //DG All ReFueling collection api
+    app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
+      const result = await dgAllRefuelingCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    app.put("/rectifier", verifyJWT, async (req, res) => {
+      const brandInfo = req.query.brand;
       //console.log(brandInfo)
-      const rectifierInfo = req.body
-     // console.log(rectifierInfo)
-     const filter={brand:brandInfo}
-     const options = { upsert: true };
-       const updateDoc = {
-         $set: rectifierInfo,
-       };
-       const result =await rectifierCollection.updateOne(
-         filter,
-         updateDoc,
-         options
-       );
-      res.send(result)
-    })
-    
-    
+      const rectifierInfo = req.body;
+      // console.log(rectifierInfo)
+      const filter = { brand: brandInfo };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: rectifierInfo,
+      };
+      const result = await rectifierCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
 
-     app.get("/rectifier", verifyJWT, async (req, res) => {
-      const result = await rectifierCollection.find({}).toArray()
-      res.send(result)
-    })
+    app.get("/rectifier", verifyJWT, async (req, res) => {
+      const result = await rectifierCollection.find({}).toArray();
+      res.send(result);
+    });
 
     app.delete("/pgRun/:id", verifyJWT, async (req, res) => {
-      const id = req.params.id 
+      const id = req.params.id;
       //console.log(id)
-      const filter = { _id: ObjectId(id) }
-      const result = await pgRunDataCollection.deleteOne(filter)
-      res.send(result)
-    })
+      const filter = { _id: ObjectId(id) };
+      const result = await pgRunDataCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     app.delete("/receivedFuel/:id", verifyJWT, async (req, res) => {
-      const id = req.params.id 
+      const id = req.params.id;
       //console.log(id)
-      const filter = { _id: ObjectId(id) }
-      const result = await fuelDataCollection.deleteOne(filter)
-      res.send(result)
-    })
+      const filter = { _id: ObjectId(id) };
+      const result = await fuelDataCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     app.get("/user/admin/:email", async (req, res) => {
-      const requesterEmail = req.params.email 
-      const filter = { email: requesterEmail }
-      const user = await userCollection.findOne(filter)
-      const isAdmin = user.role === "Admin"
-      res.send({admin:isAdmin})
-    })
+      const requesterEmail = req.params.email;
+      const filter = { email: requesterEmail };
+      const user = await userCollection.findOne(filter);
+      const isAdmin = user.role === "Admin";
+      res.send({ admin: isAdmin });
+    });
 
-    app.get("/userList",verifyJWT, async (req, res) => {
+    app.get("/userList", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
