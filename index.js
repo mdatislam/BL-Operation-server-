@@ -101,11 +101,18 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/pgRunAll", verifyJWT, async (req, res) => {
+    app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection.find(filter).toArray();
       res.send(result);
     });
+
+    app.get("/PendingAllPgRun", verifyJWT, async (req, res) => {
+      const filter = { status: "Pending" };
+      const result = await pgRunDataCollection.find(filter).toArray();
+      res.send(result);
+    });
+
 
     app.get("/fuelList", verifyJWT, async (req, res) => {
       const email = req.query.email;
