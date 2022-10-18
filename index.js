@@ -57,6 +57,9 @@ async function run() {
     const dgAllRefuelingCollection = client
       .db("BL-Operation")
       .collection("dgAllRefueling");
+       const dgUseMaterialCollection = client
+         .db("BL-Operation")
+         .collection("dgUseMaterial");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -97,19 +100,25 @@ async function run() {
       const email = req.query.email;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
-      const result = await pgRunDataCollection.find(filter).toArray();
+      const result = await pgRunDataCollection
+        .find(filter)
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
     app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
       const filter = { status: "Approved" };
-      const result = await pgRunDataCollection.find(filter).toArray();
+      const result = await pgRunDataCollection
+        .find(filter)
+        .sort({ date: 1 })
+        .toArray();
       res.send(result);
     });
 
     app.get("/PendingAllPgRun", verifyJWT, async (req, res) => {
       const filter = { status: "Pending" };
-      const result = await pgRunDataCollection.find(filter).toArray();
+      const result = await pgRunDataCollection.find(filter).sort({date: 1}).toArray();
       res.send(result);
     });
 
@@ -118,12 +127,13 @@ async function run() {
       const email = req.query.email;
       //console.log(email)
       const filter = { fuelReceiverEmail: email };
-      const result = await fuelDataCollection.find(filter).toArray();
+      const result = await fuelDataCollection.find(filter).sort({date:-1}).toArray();
       res.send(result);
     });
 
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
-      const result = await fuelDataCollection.find({}).toArray();
+      const result = await fuelDataCollection
+        .find({}).sort({date:1,slipNo:1}).toArray();
       res.send(result);
     });
 
@@ -150,7 +160,10 @@ async function run() {
         status: "Pending",
       };
       //console.log(filter)
-      const result = await pgRunDataCollection.find(filter).toArray();
+      const result = await pgRunDataCollection
+        .find(filter)
+        .sort({ date:1 })
+        .toArray();
       res.send(result);
     });
 
@@ -239,7 +252,10 @@ async function run() {
 
     //DG All ReFueling collection api
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
-      const result = await dgAllRefuelingCollection.find({}).toArray();
+      const result = await dgAllRefuelingCollection
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
@@ -258,6 +274,14 @@ async function run() {
         updateDoc,
         options
       );
+      res.send(result);
+    });
+
+    //For Use DG Material collection api
+    app.post("/dgMatrialInfo", verifyJWT, async (req, res) => {
+      const refuel = req.body;
+      //console.log(refuel)
+      const result = await dgUseMaterialCollection.insertOne(refuel);
       res.send(result);
     });
 
