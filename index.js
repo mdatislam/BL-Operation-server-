@@ -133,7 +133,7 @@ async function run() {
 
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
-        .find({}).sort({date:1,slipNo:1}).toArray();
+        .find({}).sort({slipNo:1}).toArray();
       res.send(result);
     });
 
@@ -168,7 +168,9 @@ async function run() {
     });
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
-      const result = await EMDataCollection.find({}).toArray();
+      const result = await EMDataCollection.find({})
+        .sort({ date: 1 })
+        .toArray();
       res.send(result);
     });
 
@@ -213,14 +215,17 @@ async function run() {
       res.send(result);
     });
 
-    //DG Last ReFueling collection api
-    app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
-      const result = await dgRefuelingCollection.find({}).toArray();
+    //DG All ReFueling collection api
+    app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
+      const result = await dgAllRefuelingCollection
+        .find({})
+        .sort({ date:1 })
+        .toArray();
       res.send(result);
     });
     //DG Last ReFueling collection api
     app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
-      const result = await dgRefuelingCollection.find({}).toArray();
+      const result = await dgRefuelingCollection.find({}).sort({date:-1}).toArray();
       res.send(result);
     });
 
@@ -285,6 +290,10 @@ async function run() {
       res.send(result);
     });
 
+      app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
+        const result = await dgUseMaterialCollection.find({}).sort({date:1}).toArray();
+        res.send(result);
+      });
     app.get("/rectifier", verifyJWT, async (req, res) => {
       const result = await rectifierCollection.find({}).toArray();
       res.send(result);
