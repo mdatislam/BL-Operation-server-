@@ -76,7 +76,7 @@ async function run() {
           email: email,
         },
         process.env.ACCESS_TOKEN,
-        { expiresIn: "3h" }
+        { expiresIn: "2h" }
       );
       res.send({ result, accessToken: accessToken });
     });
@@ -283,7 +283,7 @@ async function run() {
     });
 
     //For Use DG Material collection api
-    app.post("/dgMatrialInfo", verifyJWT, async (req, res) => {
+    app.post("/dgMaterialInfo", verifyJWT, async (req, res) => {
       const refuel = req.body;
       //console.log(refuel)
       const result = await dgUseMaterialCollection.insertOne(refuel);
@@ -323,10 +323,34 @@ async function run() {
       res.send({ admin: isAdmin });
     });
 
+    app.put("/profileChange/:email", verifyJWT, async (req, res) => {
+      const userEmail = req.params.email;
+      const userProfile = req.body;
+      const filter = { email:userEmail};
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: userProfile,
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
     app.get("/userList", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    /* pg runner filter */
+    app.get("/userList/pgRunner", verifyJWT, async (req, res) => {
+      const result = await userCollection.find({otherRole:"PG Runner"}).sort({name:1}).toArray();
+      res.send(result);
+    });
+
+
   } finally {
   }
 }
