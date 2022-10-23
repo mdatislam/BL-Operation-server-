@@ -12,6 +12,7 @@ app.use(express.json());
 
 //https://enigmatic-eyrie-94440.herokuapp.com
 // http://localhost:5000
+// npm install react-csv --save 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
@@ -341,6 +342,12 @@ async function run() {
 
     app.get("/userList", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/userList/user", async (req, res) => {
+      const userEmail = req.query.email 
+
+      const result = await userCollection.find({email:userEmail}).toArray();
       res.send(result);
     });
 
