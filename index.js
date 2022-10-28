@@ -12,7 +12,7 @@ app.use(express.json());
 
 //https://enigmatic-eyrie-94440.herokuapp.com
 // http://localhost:5000
-// npm install react-csv --save 
+// npm install react-csv --save
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
@@ -26,15 +26,15 @@ function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   // console.log(authHeader)
   if (!authHeader) {
- return res.status(401).send({ message: "unauthorize access" });
+    return res.status(401).send({ message: "unauthorize access" });
   }
-  const token = authHeader.split(" ")[1]
+  const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-     if (err) {
-       return res.status(403).send({ message: "access forbidden" });
-     }
-     req.decoded = decoded;
-     next();
+    if (err) {
+      return res.status(403).send({ message: "access forbidden" });
+    }
+    req.decoded = decoded;
+    next();
   });
 }
 async function run() {
@@ -58,9 +58,10 @@ async function run() {
     const dgAllRefuelingCollection = client
       .db("BL-Operation")
       .collection("dgAllRefueling");
-       const dgUseMaterialCollection = client
-         .db("BL-Operation")
-         .collection("dgUseMaterial");
+    const dgUseMaterialCollection = client
+      .db("BL-Operation")
+      .collection("dgUseMaterial");
+    const PgCollection = client.db("BL-Operation").collection("PgList");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -119,22 +120,29 @@ async function run() {
 
     app.get("/PendingAllPgRun", verifyJWT, async (req, res) => {
       const filter = { status: "Pending" };
-      const result = await pgRunDataCollection.find(filter).sort({date: 1}).toArray();
+      const result = await pgRunDataCollection
+        .find(filter)
+        .sort({ date: 1 })
+        .toArray();
       res.send(result);
     });
-
 
     app.get("/fuelList", verifyJWT, async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { fuelReceiverEmail: email };
-      const result = await fuelDataCollection.find(filter).sort({date:-1}).toArray();
+      const result = await fuelDataCollection
+        .find(filter)
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
-        .find({}).sort({slipNo:1}).toArray();
+        .find({})
+        .sort({ slipNo: 1 })
+        .toArray();
       res.send(result);
     });
 
@@ -163,7 +171,7 @@ async function run() {
       //console.log(filter)
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date:1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -220,13 +228,16 @@ async function run() {
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
-        .sort({ date:1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
     //DG Last ReFueling collection api
     app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
-      const result = await dgRefuelingCollection.find({}).sort({date:-1}).toArray();
+      const result = await dgRefuelingCollection
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
@@ -291,10 +302,13 @@ async function run() {
       res.send(result);
     });
 
-      app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
-        const result = await dgUseMaterialCollection.find({}).sort({date:1}).toArray();
-        res.send(result);
-      });
+    app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
+      const result = await dgUseMaterialCollection
+        .find({})
+        .sort({ date: 1 })
+        .toArray();
+      res.send(result);
+    });
     app.get("/rectifier", verifyJWT, async (req, res) => {
       const result = await rectifierCollection.find({}).toArray();
       res.send(result);
@@ -327,16 +341,12 @@ async function run() {
     app.put("/profileChange/:email", verifyJWT, async (req, res) => {
       const userEmail = req.params.email;
       const userProfile = req.body;
-      const filter = { email:userEmail};
+      const filter = { email: userEmail };
       const options = { upsert: true };
       const updateDoc = {
         $set: userProfile,
       };
-      const result = await userCollection.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
+      const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
 
@@ -344,20 +354,48 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
-    app.get("/userList/user", async (req, res) => {
-      const userEmail = req.query.email 
-
-      const result = await userCollection.find({email:userEmail}).toArray();
+    app.get("/userList/users", async (req, res) => {
+      const userEmail = req.query.email;
+      //console.log(userEmail);
+      const result = await userCollection.find({ email: userEmail }).toArray();
       res.send(result);
     });
 
     /* pg runner filter */
     app.get("/userList/pgRunner", verifyJWT, async (req, res) => {
-      const result = await userCollection.find({otherRole:"PG Runner"}).sort({name:1}).toArray();
+      const result = await userCollection
+        .find({ otherRole: "PG Runner" })
+        .sort({ pgRunnerName: 1 })
+        .toArray();
       res.send(result);
     });
 
+    /* PG collection section */
 
+    app.get("/pgList", verifyJWT, async (req, res) => {
+      const result = await PgCollection.find().sort({ pgNo: 1 }).toArray();
+      res.send(result);
+    });
+
+    app.put("/pgList/:PgNo", verifyJWT, async (req, res) => {
+      const pNo = req.params.PgNo;
+      const updateInfo = req.body;
+      //console.log(pNo)
+      const filter = { pgNo: pNo };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: updateInfo,
+      };
+      const result = await PgCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    });
+    app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
+      const pgNo = req.params.pgNo;
+      //console.log(pgNo)
+      const filter = { pgNo: pgNo };
+      const result = await PgCollection.deleteOne(filter);
+      res.send(result);
+    });
   } finally {
   }
 }
