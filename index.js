@@ -78,7 +78,7 @@ async function run() {
           email: email,
         },
         process.env.ACCESS_TOKEN,
-        { expiresIn: "2h" }
+        { expiresIn: "1h" }
       );
       res.send({ result, accessToken: accessToken });
     });
@@ -113,7 +113,7 @@ async function run() {
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({date:1})
         .toArray();
       res.send(result);
     });
@@ -122,7 +122,7 @@ async function run() {
       const filter = { status: "Pending" };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({date:1})
         .toArray();
       res.send(result);
     });
@@ -178,7 +178,7 @@ async function run() {
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -202,7 +202,10 @@ async function run() {
     });
 
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
-      const result = await dgServicingCollection.find({}).toArray();
+      const result = await dgServicingCollection
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
       res.send(result);
     });
 
