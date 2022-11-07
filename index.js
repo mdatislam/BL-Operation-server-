@@ -52,6 +52,9 @@ async function run() {
     const dgServicingCollection = client
       .db("BL-Operation")
       .collection("dgService");
+    const dgAllServicingCollection = client
+      .db("BL-Operation")
+      .collection("dgAllService");
     const dgRefuelingCollection = client
       .db("BL-Operation")
       .collection("dgRefueling");
@@ -62,6 +65,8 @@ async function run() {
       .db("BL-Operation")
       .collection("dgUseMaterial");
     const PgCollection = client.db("BL-Operation").collection("PgList");
+
+    const siteDataCollection = client.db("BL-Operation").collection("siteData");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -113,7 +118,7 @@ async function run() {
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({date:1})
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -122,7 +127,7 @@ async function run() {
       const filter = { status: "Pending" };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({date:1})
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -201,11 +206,28 @@ async function run() {
       res.send(result);
     });
 
+    //For  DgService Part API from here
+
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
         .sort({ date: -1 })
         .toArray();
+      res.send(result);
+    });
+
+    app.get("/dgAllServiceInfo", verifyJWT, async (req, res) => {
+      const result = await dgAllServicingCollection
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    //For  Dg all Servicing collection api
+    app.post("/dgAllServicing", verifyJWT, async (req, res) => {
+      const servicing = req.body;
+      const result = await dgAllServicingCollection.insertOne(servicing);
       res.send(result);
     });
 
@@ -392,6 +414,36 @@ async function run() {
       const result = await PgCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
+
+    // siteData collection API
+
+    app.put("/siteInfo/:siteID", verifyJWT, async (req, res) => {
+      const siteNo = req.params.siteID;
+      //console.log(siteNo);
+      const updateInfo = req.body;
+      //console.log(updateInfo)
+      const filter = { siteId: siteNo };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: updateInfo,
+      };
+      const result = await siteDataCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    // Site info data collection API
+    app.get("/siteInfo", verifyJWT, async (req, res) => {
+      const result = await siteDataCollection
+        .find()
+        .sort({ siteId: 1 })
+        .toArray();
+      res.send(result);
+    });
+
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
       const pgNo = req.params.pgNo;
       //console.log(pgNo)
