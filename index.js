@@ -438,7 +438,7 @@ async function run() {
     // Site info data collection API
     app.get("/siteInfo", verifyJWT, async (req, res) => {
       const result = await siteDataCollection
-        .find()
+        .find().project({siteId:1})
         .sort({ siteId: 1 })
         .toArray();
       res.send(result);
