@@ -211,7 +211,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -249,6 +249,30 @@ async function run() {
       res.send(result);
     });
 
+    //DG service record multi delete api
+
+    app.delete("/dgServiceInfo/multiDelete", verifyJWT, async (req, res) => {
+      const sites = req.body;
+      //console.log(ids)
+      const result= await dgServicingCollection.deleteMany(
+        { siteId: { $in: sites } }
+      );
+      res.send(result)
+    });
+
+    //DG AllService record multi delete api
+
+    app.delete("/dgAllServiceInfo/multiDelete", verifyJWT, async (req, res) => {
+      const sites = req.body;
+      //console.log(ids)
+      const result= await dgAllServicingCollection.deleteMany(
+        { siteId: { $in: sites } }
+      );
+      res.send(result)
+      }); 
+ 
+      
+   
     //DG All ReFueling collection api
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
       const result = await dgAllRefuelingCollection
@@ -435,10 +459,20 @@ async function run() {
       res.send(result);
     });
 
-    // Site info data collection API
+    // Site ID collection API
     app.get("/siteInfo", verifyJWT, async (req, res) => {
       const result = await siteDataCollection
-        .find().project({siteId:1})
+        .find()
+        .project({ siteId: 1 })
+        .sort({ siteId: 1 })
+        .toArray();
+      res.send(result);
+    });
+
+    // Site info collection API
+    app.get("/siteData", verifyJWT, async (req, res) => {
+      const result = await siteDataCollection
+        .find()
         .sort({ siteId: 1 })
         .toArray();
       res.send(result);
