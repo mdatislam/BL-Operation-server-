@@ -183,7 +183,7 @@ async function run() {
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
-        .sort({ date: -1 })
+        .sort({ siteId: 1 })
         .toArray();
       res.send(result);
     });
