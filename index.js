@@ -228,7 +228,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date:-1 })
         .toArray();
       res.send(result);
     });
