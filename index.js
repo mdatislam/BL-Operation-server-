@@ -12,6 +12,8 @@ app.use(express.json());
 
 //https://enigmatic-eyrie-94440.herokuapp.com
 // http://localhost:5000
+
+//https://bl-operation-server-production.up.railway.app
 // npm install react-csv --save
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
@@ -45,6 +47,7 @@ async function run() {
       .db("BL-Operation")
       .collection("pgRunData");
     const fuelDataCollection = client.db("BL-Operation").collection("fuelData");
+    const fuelDataOncallCollection = client.db("BL-Operation").collection("fuelDataOncall");
     const EMDataCollection = client.db("BL-Operation").collection("EMData");
     const rectifierCollection = client
       .db("BL-Operation")
@@ -102,6 +105,37 @@ async function run() {
       const result = await fuelDataCollection.insertOne(fuelData);
       res.send(result);
     });
+     app.post("/fuelDataOncall", verifyJWT, async (req, res) => {
+      const fuelData = req.body;
+      //console.log(pgData)
+      const result = await fuelDataOncallCollection.insertOne(fuelData);
+      res.send(result);
+    });
+    app.get("/fuelList", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      //console.log(email)
+      const filter = { fuelReceiverEmail: email };
+      const result = await fuelDataCollection
+        .find(filter)
+        .sort({ date: -1 })
+        .toArray();
+      res.send(result);
+    });
+    app.get("/fuelListAllOncall", async (req, res) => {
+      const result = await fuelDataOncallCollection
+        .find({})
+        .sort({ slipNo: 1 })
+        .toArray();
+      res.send(result);
+    });
+
+    app.get("/fuelListAll", verifyJWT, async (req, res) => {
+      const result = await fuelDataCollection
+        .find({})
+        .sort({ slipNo: 1 })
+        .toArray();
+      res.send(result);
+    });
 
     app.get("/pgRunAllList", verifyJWT, async (req, res) => {
       const email = req.query.email;
@@ -132,24 +166,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/fuelList", verifyJWT, async (req, res) => {
-      const email = req.query.email;
-      //console.log(email)
-      const filter = { fuelReceiverEmail: email };
-      const result = await fuelDataCollection
-        .find(filter)
-        .sort({ date: -1 })
-        .toArray();
-      res.send(result);
-    });
-
-    app.get("/fuelListAll", verifyJWT, async (req, res) => {
-      const result = await fuelDataCollection
-        .find({})
-        .sort({ slipNo: 1 })
-        .toArray();
-      res.send(result);
-    });
+    
 
     app.put("/pgRunList/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
