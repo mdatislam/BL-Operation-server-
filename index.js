@@ -129,6 +129,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/onCall/fuelListAll", async (req, res) => {
+      const result = await fuelDataOncallCollection
+        .find({})
+        .sort({date:-1, })
+        .toArray();
+      res.send(result);
+    });
+
+
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
         .find({})
@@ -136,6 +145,22 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+     app.delete("/receivedFuel/:id", verifyJWT, async (req, res) => {
+       const id = req.params.id;
+       //console.log(id)
+       const filter = { _id: ObjectId(id) };
+       const result = await fuelDataCollection.deleteOne(filter);
+       res.send(result);
+     });
+
+     app.delete("/onCall/receivedFuel/:id", verifyJWT, async (req, res) => {
+       const id = req.params.id;
+       //console.log(id)
+       const filter = { _id: ObjectId(id) };
+       const result = await fuelDataOncallCollection.deleteOne(filter);
+       res.send(result);
+     });
 
     app.get("/pgRunAllList", verifyJWT, async (req, res) => {
       const email = req.query.email;
@@ -388,13 +413,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/receivedFuel/:id", verifyJWT, async (req, res) => {
-      const id = req.params.id;
-      //console.log(id)
-      const filter = { _id: ObjectId(id) };
-      const result = await fuelDataCollection.deleteOne(filter);
-      res.send(result);
-    });
+   
 
     app.get("/user/admin/:email", async (req, res) => {
       const requesterEmail = req.params.email;
