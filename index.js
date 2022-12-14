@@ -507,11 +507,13 @@ async function run() {
 
     // Site info collection API
     app.get("/siteData", verifyJWT, async (req, res) => {
-      const result = await siteDataCollection
-        .find()
-        .sort({ siteId: 1 })
-        .toArray();
-      res.send(result);
+      //console.log(req.query.size)
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const sites = siteDataCollection.find({})
+      const result = await sites.skip(page*size).limit(size).sort({ siteId: 1 }).toArray()
+        const count = await siteDataCollection.estimatedDocumentCount();
+      res.send({result,count});
     });
 
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
