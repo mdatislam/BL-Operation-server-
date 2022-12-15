@@ -516,6 +516,13 @@ async function run() {
       res.send({result,count});
     });
 
+    app.get("/searchSite", async(req,res)=>{
+      const query = req.query.site
+      //console.log(query)
+      const result = await siteDataCollection.find({siteId:query}).toArray()
+      res.send(result)
+    })
+
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
       const pgNo = req.params.pgNo;
       //console.log(pgNo)
