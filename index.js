@@ -225,7 +225,7 @@ async function run() {
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
-        .sort({ siteId: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -253,7 +253,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date:-1 })
+        .sort({ date:1 })
         .toArray();
       res.send(result);
     });
@@ -396,7 +396,7 @@ async function run() {
     app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
       const result = await dgUseMaterialCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -522,6 +522,14 @@ async function run() {
       const result = await siteDataCollection.find({siteId:query}).toArray()
       res.send(result)
     })
+
+    app.post("/addNewSite", verifyJWT, async (req, res) => {
+      const newSiteInfo = req.body;
+      //console.log(refuel)
+      const result = await siteDataCollection.insertOne(newSiteInfo);
+      res.send(result);
+    });
+
 
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
       const pgNo = req.params.pgNo;
