@@ -522,13 +522,7 @@ async function run() {
       const result = await siteDataCollection.find({siteId:query}).toArray()
       res.send(result)
     })
-
-    app.post("/addNewSite", verifyJWT, async (req, res) => {
-      const newSiteInfo = req.body;
-      //console.log(refuel)
-      const result = await siteDataCollection.insertOne(newSiteInfo);
-      res.send(result);
-    });
+    
 
 
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
