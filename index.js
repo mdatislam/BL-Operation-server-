@@ -15,6 +15,7 @@ app.use(express.json());
 
 //https://bl-operation-server-production.up.railway.app
 // npm install react-csv --save
+// http: localhost.
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
