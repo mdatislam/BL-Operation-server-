@@ -105,7 +105,9 @@ async function run() {
       const fuelData = req.body;
       //console.log(pgData)
       const fuelSlipNo = fuelData.slipNo;
-      const slipExist = await fuelDataCollection.findOne({slipNo:fuelSlipNo})
+      const slipExist = await fuelDataCollection.findOne({
+        slipNo: fuelSlipNo,
+      });
       if (!slipExist) {
         const result = await fuelDataCollection.insertOne(fuelData);
         return res.send(result);
@@ -117,7 +119,9 @@ async function run() {
       const fuelData = req.body;
       //console.log(pgData)
       const fuelSlipNo = fuelData.slipNo;
-      const slipExist = await fuelDataOncallCollection.findOne({slipNo:fuelSlipNo});
+      const slipExist = await fuelDataOncallCollection.findOne({
+        slipNo: fuelSlipNo,
+      });
       if (!slipExist) {
         const result = await fuelDataOncallCollection.insertOne(fuelData);
         return res.send(result);
@@ -146,7 +150,7 @@ async function run() {
     app.get("/onCall/fuelListAll", async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ slipNo: -1 })
         .toArray();
       res.send(result);
     });
