@@ -72,6 +72,9 @@ async function run() {
     const PgCollection = client.db("BL-Operation").collection("PgList");
 
     const siteDataCollection = client.db("BL-Operation").collection("siteData");
+    const lubOilCollection = client
+      .db("BL-Operation")
+      .collection("LubOilRecord");
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -268,7 +271,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -537,6 +540,22 @@ async function run() {
       const result = await siteDataCollection.find({ siteId: query }).toArray();
       res.send(result);
     });
+
+    // LubOil Receive Record API
+    app.post("/lubOil", verifyJWT, async (req, res) => {
+      const lubOilData = req.body;
+     // console.log(lubOilData)
+      const result = await lubOilCollection.insertOne(lubOilData);
+      res.send(result);
+    });
+
+     app.get("/lubOil", async (req, res) => {
+       const result = await lubOilCollection
+         .find()
+         
+         .toArray();
+       res.send(result);
+     });
 
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
       const pgNo = req.params.pgNo;
