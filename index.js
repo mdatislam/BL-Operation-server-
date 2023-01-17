@@ -271,7 +271,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -556,6 +556,14 @@ async function run() {
          .toArray();
        res.send(result);
      });
+
+     app.delete("/lubOilList/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      //console.log(pgNo)
+      const filter = { _id: ObjectId(id) };
+      const result = await lubOilCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     app.delete("/pgList/:pgNo", verifyJWT, async (req, res) => {
       const pgNo = req.params.pgNo;
