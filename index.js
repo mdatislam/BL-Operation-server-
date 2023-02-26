@@ -12,6 +12,19 @@ app.use(express.json());
 
 //https://enigmatic-eyrie-94440.herokuapp.com
 // http://localhost:5000
+//https://backend.bloperation.com/
+/* IfModule mod_rewrite.c>
+
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /index.html [L]
+
+</IfModule> */
+
 
 //https://bl-operation-server-production.up.railway.app
 // npm install react-csv --save
@@ -42,6 +55,9 @@ function verifyJWT(req, res, next) {
 async function run() {
   try {
     await client.connect();
+
+    /* Collection Part Start */
+
     const userCollection = client.db("BL-Operation").collection("user");
     const pgRunDataCollection = client
       .db("BL-Operation")
@@ -75,6 +91,15 @@ async function run() {
     const lubOilCollection = client
       .db("BL-Operation")
       .collection("LubOilRecord");
+
+    const fcuFilterChangeAllRecord = client
+      .db("BL-Operation")
+      .collection("fcuFilterChangeAllRecord");
+    const fcuFilterChangeLatestRecord = client
+      .db("BL-Operation")
+      .collection("fcuFilterChangeLatestRecord");
+
+    /* Collection Part End */
 
     // get user info API & token issue API
     app.put("/user/:email", async (req, res) => {
@@ -153,7 +178,7 @@ async function run() {
     app.get("/onCall/fuelListAll", async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
-        .sort({ slipNo: -1 })
+        .sort({ date: -1, slipNo: -1 })
         .toArray();
       res.send(result);
     });
@@ -544,20 +569,20 @@ async function run() {
     // LubOil Receive Record API
     app.post("/lubOil", verifyJWT, async (req, res) => {
       const lubOilData = req.body;
-     // console.log(lubOilData)
+      // console.log(lubOilData)
       const result = await lubOilCollection.insertOne(lubOilData);
       res.send(result);
     });
 
-     app.get("/lubOil", async (req, res) => {
-       const result = await lubOilCollection
-         .find()
-         
-         .toArray();
-       res.send(result);
-     });
+    app.get("/lubOil", async (req, res) => {
+      const result = await lubOilCollection
+        .find()
 
-     app.delete("/lubOilList/:id", verifyJWT, async (req, res) => {
+        .toArray();
+      res.send(result);
+    });
+
+    app.delete("/lubOilList/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       //console.log(pgNo)
       const filter = { _id: ObjectId(id) };
@@ -572,6 +597,56 @@ async function run() {
       const result = await PgCollection.deleteOne(filter);
       res.send(result);
     });
+
+    /* FCU Part start */
+
+    app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
+      const result = await fcuFilterChangeLatestRecord
+        .find({})
+        .sort({ date: 1 })
+        .toArray();
+      res.send(result);
+    });
+
+    app.get("/fcuFilterChangeAllRecord", verifyJWT, async (req, res) => {
+      const result = await fcuFilterChangeAllRecord
+        .find({})
+        .sort({ date: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    //For  FCU filter change all record collection api
+    app.post("/fcuFilterChangeAllRecord", verifyJWT, async (req, res) => {
+      const fcuFilter = req.body;
+      const result = await fcuFilterChangeAllRecord.insertOne(fcuFilter);
+      res.send(result);
+    });
+    //For  FCU filter change Latest record collection api
+    app.put(
+      "/fcuFilterChangeLatestRecord/:siteID",
+      verifyJWT,
+      async (req, res) => {
+        const siteNo = req.params.siteID;
+        //console.log(siteNo);
+        const updateInfo = req.body;
+        //console.log(updateInfo)
+        const filter = { siteId: siteNo };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: updateInfo,
+        };
+        const result = await fcuFilterChangeLatestRecord.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      }
+    );
+
+    /* FCU Part End */
+
   } finally {
   }
 }
