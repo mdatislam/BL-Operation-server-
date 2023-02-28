@@ -98,6 +98,10 @@ async function run() {
     const fcuFilterChangeLatestRecord = client
       .db("BL-Operation")
       .collection("fcuFilterChangeLatestRecord");
+      const fcuFilterCollection = client
+        .db("BL-Operation")
+        .collection("fcuReceiveFilter");
+
 
     /* Collection Part End */
 
@@ -644,6 +648,21 @@ async function run() {
         res.send(result);
       }
     );
+
+     // LubOil Receive Record API
+    app.post("/fcuFilter", verifyJWT, async (req, res) => {
+      const fcuFilterData = req.body;
+      // console.log(fcuData)
+      const result = await fcuFilterCollection.insertOne(fcuFilterData);
+      res.send(result);
+    });
+
+     app.get("/fcuFilter", async (req, res) => {
+       const result = await fcuFilterCollection
+         .find()
+         .toArray();
+       res.send(result);
+     });
 
     /* FCU Part End */
 
