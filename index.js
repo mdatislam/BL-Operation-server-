@@ -25,7 +25,6 @@ app.use(express.json());
 
 </IfModule> */
 
-
 //https://bl-operation-server-production.up.railway.app
 // npm install react-csv --save
 
@@ -98,10 +97,9 @@ async function run() {
     const fcuFilterChangeLatestRecord = client
       .db("BL-Operation")
       .collection("fcuFilterChangeLatestRecord");
-      const fcuFilterCollection = client
-        .db("BL-Operation")
-        .collection("fcuReceiveFilter");
-
+    const fcuFilterCollection = client
+      .db("BL-Operation")
+      .collection("fcuReceiveFilter");
 
     /* Collection Part End */
 
@@ -649,7 +647,7 @@ async function run() {
       }
     );
 
-     // LubOil Receive Record API
+    // FCU fillter Receive Record API
     app.post("/fcuFilter", verifyJWT, async (req, res) => {
       const fcuFilterData = req.body;
       // console.log(fcuData)
@@ -657,15 +655,20 @@ async function run() {
       res.send(result);
     });
 
-     app.get("/fcuFilter", async (req, res) => {
-       const result = await fcuFilterCollection
-         .find()
-         .toArray();
-       res.send(result);
-     });
+    app.get("/fcuFilter", async (req, res) => {
+      const result = await fcuFilterCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/fcuFilter/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      //console.log(pgNo)
+      const filter = { _id: ObjectId(id) };
+      const result = await fcuFilterCollection.deleteOne(filter);
+      res.send(result);
+    });
 
     /* FCU Part End */
-
   } finally {
   }
 }
