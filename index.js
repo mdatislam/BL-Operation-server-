@@ -605,7 +605,7 @@ async function run() {
     app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
-        .sort({ date: 1 })
+        .sort({ latestFilterChangeDate: -1 })
         .toArray();
       res.send(result);
     });
@@ -613,7 +613,7 @@ async function run() {
     app.get("/fcuFilterChangeAllRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeAllRecord
         .find({})
-        .sort({ date: -1 })
+        .sort({ latestFilterChangeDate: -1 })
         .toArray();
       res.send(result);
     });
