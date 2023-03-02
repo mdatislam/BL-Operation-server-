@@ -613,7 +613,7 @@ async function run() {
     app.get("/fcuFilterChangeAllRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeAllRecord
         .find({})
-        .sort({ latestFilterChangeDate: -1 })
+        .sort({ nextPlanDate: 1 })
         .toArray();
       res.send(result);
     });
