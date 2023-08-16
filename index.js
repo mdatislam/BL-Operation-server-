@@ -13,6 +13,9 @@ app.use(express.json());
 //https://enigmatic-eyrie-94440.herokuapp.com
 // http://localhost:5000
 //https://backend.bloperation.com/
+//https://blserver.bloperation.com/
+
+//.htaccess file
 /* IfModule mod_rewrite.c>
 
   RewriteEngine On
@@ -104,8 +107,30 @@ async function run() {
     /* Collection Part End */
 
     // get user info API & token issue API
+    app.post("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      //console.log(email)
+      // const userUpdate = req.body;
+      // const filter = { email: email };
+      // const options = { upsert: true };
+      // const updateDoc = {
+      //   $set: userUpdate,
+      // };
+      // const result = await userCollection.updateOne(filter, updateDoc, options);
+      const accessToken = jwt.sign(
+        {
+          email: email,
+        },
+        process.env.ACCESS_TOKEN,
+        { expiresIn: "2h" }
+      );
+      res.send({ accessToken: accessToken });
+    });
+
+// get user info API & token issue API when user create
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
+      //console.log(email)
       const userUpdate = req.body;
       const filter = { email: email };
       const options = { upsert: true };
@@ -118,9 +143,9 @@ async function run() {
           email: email,
         },
         process.env.ACCESS_TOKEN,
-        { expiresIn: "1h" }
+        { expiresIn: "2h" }
       );
-      res.send({ result, accessToken: accessToken });
+      res.send({ accessToken: accessToken });
     });
 
     // pgRunData update into data base API
@@ -370,7 +395,7 @@ async function run() {
     app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
       const result = await dgRefuelingCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -477,7 +502,7 @@ async function run() {
     });
 
     app.get("/userList", verifyJWT, async (req, res) => {
-      const result = await userCollection.find().toArray();
+      const result = await userCollection.find({}).toArray();
       res.send(result);
     });
     app.get("/userList/users", async (req, res) => {
@@ -558,7 +583,7 @@ async function run() {
         .sort({ siteId: 1 })
         .toArray();
       const count = await siteDataCollection.estimatedDocumentCount();
-      res.send({ result, count });
+      res.send({ result, count: count });
     });
 
     app.get("/searchSite", async (req, res) => {
@@ -578,7 +603,7 @@ async function run() {
 
     app.get("/lubOil", async (req, res) => {
       const result = await lubOilCollection
-        .find()
+        .find({})
 
         .toArray();
       res.send(result);
