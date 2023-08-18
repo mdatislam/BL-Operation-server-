@@ -106,17 +106,10 @@ async function run() {
 
     /* Collection Part End */
 
-    // get user info API & token issue API
-    app.post("/user/:email", async (req, res) => {
-      const email = req.params.email;
+    // get user info API & token issue API during login
+    app.post("/user", async (req, res) => {
+      const email = req.body;
       //console.log(email)
-      // const userUpdate = req.body;
-      // const filter = { email: email };
-      // const options = { upsert: true };
-      // const updateDoc = {
-      //   $set: userUpdate,
-      // };
-      // const result = await userCollection.updateOne(filter, updateDoc, options);
       const accessToken = jwt.sign(
         {
           email: email,
@@ -127,7 +120,7 @@ async function run() {
       res.send({ accessToken: accessToken });
     });
 
-// get user info API & token issue API when user create
+    // get user info API & token issue API when user create
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       //console.log(email)
@@ -190,7 +183,7 @@ async function run() {
       const filter = { fuelReceiverEmail: email };
       const result = await fuelDataCollection
         .find(filter)
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -205,7 +198,7 @@ async function run() {
     app.get("/onCall/fuelListAll", async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
-        .sort({ date: -1, slipNo: -1 })
+        .sort({ date: 1, slipNo: -1 })
         .toArray();
       res.send(result);
     });
@@ -240,7 +233,7 @@ async function run() {
       const filter = { pgRunnerEmail: email };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -295,7 +288,7 @@ async function run() {
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -331,7 +324,7 @@ async function run() {
     app.get("/dgAllServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgAllServicingCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -430,7 +423,7 @@ async function run() {
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -464,7 +457,7 @@ async function run() {
     app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
       const result = await dgUseMaterialCollection
         .find({})
-        .sort({ date: -1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
@@ -630,7 +623,7 @@ async function run() {
     app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
-        .sort({ latestFilterChangeDate: -1 })
+        .sort({ latestFilterChangedate: 1 })
         .toArray();
       res.send(result);
     });
