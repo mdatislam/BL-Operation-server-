@@ -183,7 +183,7 @@ async function run() {
       const filter = { fuelReceiverEmail: email };
       const result = await fuelDataCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -206,7 +206,7 @@ async function run() {
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
         .find({})
-        .sort({ slipNo: 1 })
+        .sort({ date: 1, })
         .toArray();
       res.send(result);
     });
@@ -233,7 +233,7 @@ async function run() {
       const filter = { pgRunnerEmail: email };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -242,7 +242,7 @@ async function run() {
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter)
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
