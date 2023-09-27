@@ -203,7 +203,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/fuelListAll", verifyJWT, async (req, res) => {
+    app.get("/fuelListAll", async (req, res) => {
       const result = await fuelDataCollection
         .find({})
         .sort({ date: 1, })
@@ -285,6 +285,60 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    app.get('/fuelBalance',verifyJWT, async (req, res) => {
+      const pipeline = [
+        {
+          $addFields: {
+            fuelConsume: { $toDouble: "$fuelConsume" },
+
+          }
+        },
+        {
+          $group: {
+            _id: "$pgRunnerName",
+            totalFuelConsume: { $sum: "$fuelConsume" }
+
+          }
+        },
+        {
+          $lookup: {
+            from: "fuelData",
+            localField: "_id",
+            foreignField: "fuelReceiverName",
+            as: "fuelBalanceInfo"
+          }
+        },
+        {
+          $unwind: "$fuelBalanceInfo"
+        },
+        {
+          $addFields: {
+            fuelReceived: { $toInt: "$fuelBalanceInfo.fuelQuantity" },
+
+          }
+        },
+        {
+          $group: {
+            _id: "$_id",
+            fuelConsume: { $avg: "$totalFuelConsume" },
+            fuelQuantity: { $sum: "$fuelReceived" }
+          }
+        },
+        {
+          $project: {
+            name: "$_id",
+            fuelQuantity: 1,
+            fuelConsume: { $round: ["$fuelConsume", 2] },
+            _id: 0
+          }
+        },
+
+      ]
+
+      const result = await pgRunDataCollection.aggregate(pipeline).toArray()
+      res.send(result)
+    })
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
@@ -380,7 +434,7 @@ async function run() {
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -388,7 +442,7 @@ async function run() {
     app.get("/dgRefuelingInfo", verifyJWT, async (req, res) => {
       const result = await dgRefuelingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
@@ -423,7 +477,7 @@ async function run() {
     app.get("/dgAllRefueling", verifyJWT, async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
