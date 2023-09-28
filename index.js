@@ -187,7 +187,7 @@ async function run() {
         .toArray();
       res.send(result);
     });
-    app.get("/fuelListAllOncall", async (req, res) => {
+    app.get("/fuelListAllOncall",verifyJWT, async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
         .sort({ slipNo: 1 })
@@ -195,7 +195,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/onCall/fuelListAll", async (req, res) => {
+    app.get("/onCall/fuelListAll",verifyJWT, async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
         .sort({ date: 1, slipNo: -1 })
@@ -203,7 +203,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/fuelListAll", async (req, res) => {
+    app.get("/fuelListAll",verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
         .find({})
         .sort({ date: 1, })
@@ -286,7 +286,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/fuelBalance',verifyJWT, async (req, res) => {
+    app.get('/fuelBalance', verifyJWT,async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -338,6 +338,32 @@ async function run() {
 
       const result = await pgRunDataCollection.aggregate(pipeline).toArray()
       res.send(result)
+    })
+
+    app.get("/receiveFuelOncall", async (req, res) => {
+
+      const pipeline = [
+        {
+          $addFields: { 
+            receiveFuel:{$toInt: "$fuelQuantity"}
+           }
+        },
+        {
+          $group: {
+            _id: "$fuelReceiverName",
+            receiveOnCall: { $sum: "$receiveFuel" }
+          }
+        },
+        {
+          $project: {
+            name: "$_id",
+            receiveOnCall: 1,
+            _id: 0
+          }
+        }
+      ]
+      const receivedFuel = await fuelDataOncallCollection.aggregate(pipeline).toArray()
+      res.send(receivedFuel)
     })
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
