@@ -120,6 +120,15 @@ async function run() {
       res.send({ accessToken: accessToken });
     });
 
+    app.post('/jwt', async (req, res) => {
+      const userEmail = req.body
+      //console.log(userInfo)
+      const token = jwt.sign({
+        email: userEmail,
+      }, process.env.ACCESS_TOKEN, { expiresIn: "1hr" })
+      res.send({token:token})
+    })
+
     // get user info API & token issue API when user create
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -187,7 +196,7 @@ async function run() {
         .toArray();
       res.send(result);
     });
-    app.get("/fuelListAllOncall",verifyJWT, async (req, res) => {
+    app.get("/fuelListAllOncall", verifyJWT, async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
         .sort({ slipNo: 1 })
@@ -195,7 +204,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/onCall/fuelListAll",verifyJWT, async (req, res) => {
+    app.get("/onCall/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
         .sort({ date: 1, slipNo: -1 })
@@ -203,7 +212,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/fuelListAll",verifyJWT, async (req, res) => {
+    app.get("/fuelListAll", verifyJWT, async (req, res) => {
       const result = await fuelDataCollection
         .find({})
         .sort({ date: 1, })
@@ -286,7 +295,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/fuelBalance', verifyJWT,async (req, res) => {
+    app.get('/fuelBalance', verifyJWT, async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -344,9 +353,9 @@ async function run() {
 
       const pipeline = [
         {
-          $addFields: { 
-            receiveFuel:{$toInt: "$fuelQuantity"}
-           }
+          $addFields: {
+            receiveFuel: { $toInt: "$fuelQuantity" }
+          }
         },
         {
           $group: {
