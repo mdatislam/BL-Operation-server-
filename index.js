@@ -107,18 +107,6 @@ async function run() {
     /* Collection Part End */
 
     // get user info API & token issue API during login
-    app.post("/user", async (req, res) => {
-      const email = req.body;
-      //console.log(email)
-      const accessToken = jwt.sign(
-        {
-          email: email,
-        },
-        process.env.ACCESS_TOKEN,
-        { expiresIn: "2h" }
-      );
-      res.send({ accessToken: accessToken });
-    });
 
     app.post('/jwt', async (req, res) => {
       const userEmail = req.body
@@ -126,28 +114,21 @@ async function run() {
       const token = jwt.sign({
         email: userEmail,
       }, process.env.ACCESS_TOKEN, { expiresIn: "1hr" })
-      res.send({token:token})
+      res.send({ token: token })
     })
 
     // get user info API & token issue API when user create
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
-      //console.log(email)
+    app.put("/user", async (req, res) => {
       const userUpdate = req.body;
+      const email = userUpdate.email;
+      //console.log(email)
       const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
         $set: userUpdate,
       };
-      const result = await userCollection.updateOne(filter, updateDoc, options);
-      const accessToken = jwt.sign(
-        {
-          email: email,
-        },
-        process.env.ACCESS_TOKEN,
-        { expiresIn: "2h" }
-      );
-      res.send({ accessToken: accessToken });
+      const result = await userCollection.updateOne(filter, updateDoc, options)
+      res.send(result);
     });
 
     // pgRunData update into data base API
@@ -339,7 +320,7 @@ async function run() {
             name: "$_id",
             fuelQuantity: 1,
             fuelConsume: { $round: ["$fuelConsume", 2] },
-            _id: 0
+
           }
         },
 
@@ -367,7 +348,7 @@ async function run() {
           $project: {
             name: "$_id",
             receiveOnCall: 1,
-            _id: 0
+
           }
         }
       ]
@@ -568,6 +549,7 @@ async function run() {
       const filter = { email: requesterEmail };
       const user = await userCollection.findOne(filter);
       const isAdmin = user.role === "Admin";
+      //console.log(isAdmin)
       res.send({ admin: isAdmin });
     });
 
