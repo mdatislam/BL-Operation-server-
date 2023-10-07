@@ -103,13 +103,17 @@ async function run() {
     const fcuFilterCollection = client
       .db("BL-Operation")
       .collection("fcuReceiveFilter");
+    const vehicleCollection = client
+      .db("BL-Operation")
+      .collection("vehicleList");
 
     /* Collection Part End */
 
     // get user info API & token issue API during login
 
     app.post('/jwt', async (req, res) => {
-      const userEmail = req.body
+      console.log('jwt hit korese')
+      const userEmail =await req.body
       //console.log(userInfo)
       const token = jwt.sign({
         email: userEmail,
@@ -141,7 +145,7 @@ async function run() {
 
     app.post("/fuelData", verifyJWT, async (req, res) => {
       const fuelData = req.body;
-      //console.log(pgData)
+     // console.log(fuelData)
       const fuelSlipNo = fuelData.slipNo;
       const slipExist = await fuelDataCollection.findOne({
         slipNo: fuelSlipNo,
@@ -276,7 +280,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/fuelBalance', verifyJWT, async (req, res) => {
+    app.get('/fuelBalance',verifyJWT, async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -498,7 +502,7 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/rectifier", verifyJWT, async (req, res) => {
+    app.put("/rectifier", verifyJWT,verifyJWT, async (req, res) => {
       const brandInfo = req.query.brand;
       //console.log(brandInfo)
       const rectifierInfo = req.body;
@@ -515,6 +519,12 @@ async function run() {
       );
       res.send(result);
     });
+
+    app.delete("/rectifier/:brand",verifyJWT,async(req,res)=>{
+      const filter= {brand:req.params.brand}
+      const result= await rectifierCollection.deleteOne(filter)
+      res.send(result)
+    })
 
     //For Use DG Material collection api
     app.post("/dgMaterialInfo", verifyJWT, async (req, res) => {
@@ -584,6 +594,13 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    app.delete('/user/delete/:email',async(req,res)=>{
+      const userEmail= req.params.email
+      console.log(userEmail) 
+      const result = await userCollection.deleteOne({email:userEmail})
+      res.send(result)
+    })
 
     /* PG collection section */
 
@@ -736,7 +753,7 @@ async function run() {
       }
     );
 
-    // FCU fillter Receive Record API
+    // FCU filter Receive Record API
     app.post("/fcuFilter", verifyJWT, async (req, res) => {
       const fcuFilterData = req.body;
       // console.log(fcuData)
@@ -757,6 +774,29 @@ async function run() {
       res.send(result);
     });
 
+    /* Vehicle Api Start */
+    app.put("/vehicle",async(req,res)=>{
+      const vehicleInfo= req.body 
+      const vehicleNo= vehicleInfo.vehicleNo
+      const filter= {vehicleNo:vehicleNo}
+      const options={upsert:true}
+      const updateDoc={
+        $set:vehicleInfo
+      }
+      const newVehicle= await vehicleCollection.updateOne(filter,updateDoc,options)
+      res.send(newVehicle)
+    })
+
+    app.get("/vehicle",async(req,res)=>{
+      const result= await vehicleCollection.find({}).toArray()
+      res.send(result)
+    })
+
+    app.delete("/vehicle/:vehicleNo",async(req,res)=>{
+      const filter= {vehicleNo:req.params.vehicleNo}
+      const result= await vehicleCollection.deleteOne(filter)
+      res.send(result)
+    })
     /* FCU Part End */
   } finally {
   }
