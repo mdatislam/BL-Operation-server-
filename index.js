@@ -107,6 +107,10 @@ async function run() {
       .db("BL-Operation")
       .collection("vehicleList");
 
+      const siteIssueCollection = client
+      .db("BL-Operation")
+      .collection("siteIssues");
+
     /* Collection Part End */
 
     // get user info API & token issue API during login
@@ -774,6 +778,8 @@ async function run() {
       res.send(result);
     });
 
+    /* FCU Part End */
+
     /* Vehicle Api Start */
     app.put("/vehicle",async(req,res)=>{
       const vehicleInfo= req.body 
@@ -797,7 +803,20 @@ async function run() {
       const result= await vehicleCollection.deleteOne(filter)
       res.send(result)
     })
-    /* FCU Part End */
+
+    /* Site Issue Part start */
+
+    app.post("/siteIssues",async(req,res)=>{
+      const siteIssue= req.body 
+      const result = await siteIssueCollection.insertOne(siteIssue)
+      res.send(result)
+    })
+
+    app.get("/siteIssues",async(req,res)=>{
+    const result = await siteIssueCollection.find({}).toArray()
+      res.send(result)
+    })
+    
   } finally {
   }
 }
