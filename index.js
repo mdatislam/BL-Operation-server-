@@ -107,7 +107,7 @@ async function run() {
       .db("BL-Operation")
       .collection("vehicleList");
 
-      const siteIssueCollection = client
+    const siteIssueCollection = client
       .db("BL-Operation")
       .collection("siteIssues");
 
@@ -117,7 +117,7 @@ async function run() {
 
     app.post('/jwt', async (req, res) => {
       console.log('jwt hit korese')
-      const userEmail =await req.body
+      const userEmail = await req.body
       //console.log(userInfo)
       const token = jwt.sign({
         email: userEmail,
@@ -149,7 +149,7 @@ async function run() {
 
     app.post("/fuelData", verifyJWT, async (req, res) => {
       const fuelData = req.body;
-     // console.log(fuelData)
+      // console.log(fuelData)
       const fuelSlipNo = fuelData.slipNo;
       const slipExist = await fuelDataCollection.findOne({
         slipNo: fuelSlipNo,
@@ -284,7 +284,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/fuelBalance',verifyJWT, async (req, res) => {
+    app.get('/fuelBalance', verifyJWT, async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -506,7 +506,7 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/rectifier", verifyJWT,verifyJWT, async (req, res) => {
+    app.put("/rectifier", verifyJWT, verifyJWT, async (req, res) => {
       const brandInfo = req.query.brand;
       //console.log(brandInfo)
       const rectifierInfo = req.body;
@@ -524,9 +524,9 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/rectifier/:brand",verifyJWT,async(req,res)=>{
-      const filter= {brand:req.params.brand}
-      const result= await rectifierCollection.deleteOne(filter)
+    app.delete("/rectifier/:brand", verifyJWT, async (req, res) => {
+      const filter = { brand: req.params.brand }
+      const result = await rectifierCollection.deleteOne(filter)
       res.send(result)
     })
 
@@ -599,10 +599,10 @@ async function run() {
       res.send(result);
     });
 
-    app.delete('/user/delete/:email',async(req,res)=>{
-      const userEmail= req.params.email
-      console.log(userEmail) 
-      const result = await userCollection.deleteOne({email:userEmail})
+    app.delete('/user/delete/:email',verifyJWT, async (req, res) => {
+      const userEmail = req.params.email
+      console.log(userEmail)
+      const result = await userCollection.deleteOne({ email: userEmail })
       res.send(result)
     })
 
@@ -781,42 +781,67 @@ async function run() {
     /* FCU Part End */
 
     /* Vehicle Api Start */
-    app.put("/vehicle",async(req,res)=>{
-      const vehicleInfo= req.body 
-      const vehicleNo= vehicleInfo.vehicleNo
-      const filter= {vehicleNo:vehicleNo}
-      const options={upsert:true}
-      const updateDoc={
-        $set:vehicleInfo
+    app.put("/vehicle", async (req, res) => {
+      const vehicleInfo = req.body
+      const vehicleNo = vehicleInfo.vehicleNo
+      const filter = { vehicleNo: vehicleNo }
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: vehicleInfo
       }
-      const newVehicle= await vehicleCollection.updateOne(filter,updateDoc,options)
+      const newVehicle = await vehicleCollection.updateOne(filter, updateDoc, options)
       res.send(newVehicle)
     })
 
-    app.get("/vehicle",async(req,res)=>{
-      const result= await vehicleCollection.find({}).toArray()
+    app.get("/vehicle", async (req, res) => {
+      const result = await vehicleCollection.find({}).toArray()
       res.send(result)
     })
 
-    app.delete("/vehicle/:vehicleNo",async(req,res)=>{
-      const filter= {vehicleNo:req.params.vehicleNo}
-      const result= await vehicleCollection.deleteOne(filter)
+    app.delete("/vehicle/:vehicleNo", async (req, res) => {
+      const filter = { vehicleNo: req.params.vehicleNo }
+      const result = await vehicleCollection.deleteOne(filter)
       res.send(result)
     })
 
     /* Site Issue Part start */
 
-    app.post("/siteIssues",async(req,res)=>{
-      const siteIssue= req.body 
+    app.post("/siteIssues", async (req, res) => {
+      const siteIssue = req.body
       const result = await siteIssueCollection.insertOne(siteIssue)
       res.send(result)
     })
 
-    app.get("/siteIssues",async(req,res)=>{
-    const result = await siteIssueCollection.find({}).toArray()
+    app.put("/siteIssues/:siteId", async (req, res) => {
+      const feedback = req.body
+      const siteCode = req.params.siteId
+      const filter = { siteId: siteCode }
+      //console.log(filter)
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: feedback
+      }
+      const result = await siteIssueCollection.updateOne(filter, updateDoc, options)
       res.send(result)
     })
-    
+
+    app.get("/siteIssues", async (req, res) => {
+      const result = await siteIssueCollection.find({}).toArray()
+      res.send(result)
+    })
+
+    app.get("/siteIssues/pending", async (req, res) => {
+      const filter = { status: "pending" }
+      const result = await siteIssueCollection.find(filter).toArray()
+      res.send(result)
+    })
+
+    app.delete("/siteIssues/:id", async (req, res) => {
+      const filter = { _id: new ObjectId(req.params.id) }
+      const result = await siteIssueCollection.deleteOne(filter)
+      res.send(result)
+    })
+
   } finally {
   }
 }
