@@ -399,6 +399,13 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/dgServiceInfo/planSite/:target", async (req, res) => {
+      const targetDate = req.params.target
+      //console.log(targetDate)
+      const result = await dgServicingCollection.find({ date: { $lt: targetDate } }).sort({ date: 1 }).toArray()
+      res.send(result)
+    })
+
     app.get("/dgAllServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgAllServicingCollection
         .find({})
@@ -599,7 +606,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete('/user/delete/:email',verifyJWT, async (req, res) => {
+    app.delete('/user/delete/:email', verifyJWT, async (req, res) => {
       const userEmail = req.params.email
       console.log(userEmail)
       const result = await userCollection.deleteOne({ email: userEmail })
