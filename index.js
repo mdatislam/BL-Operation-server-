@@ -722,8 +722,16 @@ async function run() {
     app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
-        .sort({ latestFilterChangedate: 1 })
+        .sort({ nextPlanDate: 1 })
         .toArray();
+      res.send(result);
+    });
+
+    app.get("/fcuFilterChangeLatestRecord/:siteCode", verifyJWT, async (req, res) => {
+      const site= req.params.siteCode 
+      const result = await fcuFilterChangeLatestRecord
+        .find({siteId:site})
+           .toArray();
       res.send(result);
     });
 
