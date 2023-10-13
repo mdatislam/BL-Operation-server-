@@ -728,10 +728,10 @@ async function run() {
     });
 
     app.get("/fcuFilterChangeLatestRecord/:siteCode", verifyJWT, async (req, res) => {
-      const site= req.params.siteCode 
+      const site = req.params.siteCode
       const result = await fcuFilterChangeLatestRecord
-        .find({siteId:site})
-           .toArray();
+        .find({ siteId: site })
+        .toArray();
       res.send(result);
     });
 
@@ -785,11 +785,9 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/fcuFilter/:id", verifyJWT, async (req, res) => {
-      const id = req.params.id;
-      //console.log(pgNo)
-      const filter = { _id: ObjectId(id) };
-      const result = await fcuFilterCollection.deleteOne(filter);
+    app.delete("/fcu/:id", verifyJWT, async (req, res) => {
+      const filter = { _id: new ObjectId(req.params.id) }
+      const result = await fcuFilterChangeLatestRecord.deleteOne(filter);
       res.send(result);
     });
 
