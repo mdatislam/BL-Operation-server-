@@ -1,9 +1,9 @@
 const express = require("express");
-
 const app = express();
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+const moment = require('moment')
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
@@ -401,7 +401,7 @@ async function run() {
 
     app.get("/dgServiceInfo/planSite/:target", async (req, res) => {
       const targetDate = req.params.target
-      //console.log(targetDate)
+      console.log("dg",targetDate)
       const result = await dgServicingCollection.find({ date: { $lt: targetDate } }).sort({ date: 1 }).toArray()
       res.send(result)
     })
@@ -742,6 +742,22 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    app.get("/fcuFilterChangeLatestRecord/plan/:target", async (req, res) => {
+      const targetDate = req.params.target
+      const formattedDate = moment(targetDate, "DD-MMMM-YYYY").toDate();
+      const pipeline=[
+        {
+          $match:{
+            nextPlanDate: {$lte:targetDate }
+          }
+        }
+      ] 
+      
+      console.log(targetDate)
+      const result = await fcuFilterChangeLatestRecord.aggregate(pipeline).sort({ date: 1 }).toArray()
+      res.send(result)
+    })
 
     //For  FCU filter change all record collection api
     app.post("/fcuFilterChangeAllRecord", verifyJWT, async (req, res) => {
