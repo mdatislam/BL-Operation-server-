@@ -400,10 +400,39 @@ async function run() {
     });
 
     app.get("/dgServiceInfo/planSite/:target", async (req, res) => {
-      const targetDate = req.params.target
-      console.log("dg",targetDate)
-      const result = await dgServicingCollection.find({ date: { $lt: targetDate } }).sort({ date: 1 }).toArray()
+
+      const targetDate = new Date(req.params.target)
+      const pipeline = [
+        {
+          $addFields: {
+            parsedDate: {
+              $dateFromString: {
+                dateString: '$nextPlanDate',
+
+              }
+            }
+          }
+        },
+        {
+          $match: {
+            parsedDate: {
+              $lte: targetDate
+            }
+          }
+        },
+        {
+          $project: {
+            parsedDate: 0 
+          }
+        }
+      ]
+      //console.log("dg",targetDate)
+      const result = await dgServicingCollection.aggregate(pipeline).sort({ date: 1 }).toArray()
       res.send(result)
+      /* const targetDate = req.params.target
+      console.log("dg", targetDate)
+      const result = await dgServicingCollection.find({ date: { $lt: targetDate } }).sort({ date: 1 }).toArray()
+      res.send(result) */
     })
 
     app.get("/dgAllServiceInfo", verifyJWT, async (req, res) => {
@@ -744,17 +773,32 @@ async function run() {
     });
 
     app.get("/fcuFilterChangeLatestRecord/plan/:target", async (req, res) => {
-      const targetDate = req.params.target
-      const formattedDate = moment(targetDate, "DD-MMMM-YYYY").toDate();
-      const pipeline=[
+      const targetDate = new Date(req.params.target)
+      const pipeline = [
         {
-          $match:{
-            nextPlanDate: {$lte:targetDate }
+          $addFields: {
+            parsedDate: {
+              $dateFromString: {
+                dateString: '$nextPlanDate',
+
+              }
+            }
+          }
+        },
+        {
+          $match: {
+            parsedDate: {
+              $lte: targetDate
+            }
+          }
+        },
+        {
+          $project: {
+            parsedDate: 0 
           }
         }
-      ] 
-      
-      console.log(targetDate)
+      ]
+      //console.log(targetDate)
       const result = await fcuFilterChangeLatestRecord.aggregate(pipeline).sort({ date: 1 }).toArray()
       res.send(result)
     })
@@ -861,7 +905,7 @@ async function run() {
 
     app.get("/siteIssues/pending", async (req, res) => {
       const filter = { status: "pending" }
-      const result = await siteIssueCollection.find(filter).toArray()
+      const result = await siteIssueCollection.find(filter).sort({date:-1}).toArray()
       res.send(result)
     })
 
