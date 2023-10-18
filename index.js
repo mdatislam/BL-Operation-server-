@@ -793,10 +793,17 @@ async function run() {
           }
         },
         {
+          $sort:{
+            nextPlanDate: -1
+          }
+        },
+        
+        {
           $project: {
             parsedDate: 0 
           }
         }
+        
       ]
       //console.log(targetDate)
       const result = await fcuFilterChangeLatestRecord.aggregate(pipeline).sort({ date: 1 }).toArray()
