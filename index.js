@@ -1,8 +1,8 @@
-const express = require("express");
+let express =require("express");
 const app = express();
+const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const cors = require("cors");
 const moment = require('moment')
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -225,7 +225,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/pgRunAllList", verifyJWT, async (req, res) => {
+    app.get("/pgRunAllList",verifyJWT, async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
@@ -236,7 +236,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
+    app.get("/ApprovedAllPgRun",verifyJWT, async (req, res) => {
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter)
@@ -284,7 +284,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/fuelBalance', verifyJWT, async (req, res) => {
+    app.get("/fuelBalance", async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -338,7 +338,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/receiveFuelOncall", async (req, res) => {
+    app.get("/receiveFuelOncall",verifyJWT, async (req, res) => {
 
       const pipeline = [
         {
@@ -366,7 +366,7 @@ async function run() {
 
     app.get("/emInfo", verifyJWT, async (req, res) => {
       const result = await EMDataCollection.find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
