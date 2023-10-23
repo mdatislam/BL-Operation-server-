@@ -312,7 +312,7 @@ async function run() {
         },
         {
           $addFields: {
-            fuelReceived: { $toInt: "$fuelBalanceInfo.fuelQuantity" },
+            fuelReceived: { $toDouble: "$fuelBalanceInfo.fuelQuantity" },
 
           }
         },
@@ -325,6 +325,7 @@ async function run() {
         },
         {
           $project: {
+            _id:0,
             name: "$_id",
             fuelQuantity: 1,
             fuelConsume: { $round: ["$fuelConsume", 2] },
