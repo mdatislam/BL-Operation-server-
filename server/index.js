@@ -235,16 +235,11 @@ async function run() {
         .toArray();
       res.send(result);
     });
- app.get("/ApprovedAllPgRun/pageCount",async(req,res)=>{
-  const totalPgRunData= await pgRunDataCollection.estimatedDocumentCount() 
-  res.send({lengthPgRunData:totalPgRunData})
- })
+
     app.get("/ApprovedAllPgRun",verifyJWT, async (req, res) => {
-      const {page,size}=req.query 
-      const skipPage= (+page*size)+1 
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
-        .find(filter).skip(skipPage).limit(+size)
+        .find(filter)
         .sort({ date: -1 })
         .toArray();
       res.send(result);
