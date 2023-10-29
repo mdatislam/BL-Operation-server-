@@ -1,4 +1,4 @@
-let express =require("express");
+let express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
@@ -193,18 +193,32 @@ async function run() {
       res.send(result);
     });
 
+     app.get("/onCall/fuelListAll/count", async (req, res) => {
+      const totalPgRunData = await fuelDataOncallCollection.estimatedDocumentCount()
+      res.send({ lengthOfData: totalPgRunData })
+    })
+
     app.get("/onCall/fuelListAll", verifyJWT, async (req, res) => {
+       const { page, size } = req.query
+      const skipPage = (+page * size) + 1
       const result = await fuelDataOncallCollection
-        .find({})
-        .sort({ date: 1, slipNo: -1 })
+        .find({}).skip(skipPage).limit(+size)
+        .sort({date: -1  ,slipNo: -1  })
         .toArray();
       res.send(result);
     });
 
+    app.get("/fuelListAll/count", async (req, res) => {
+      const totalPgRunData = await fuelDataCollection.estimatedDocumentCount()
+      res.send({ lengthOfData: totalPgRunData })
+    })
+
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
+      const { page, size } = req.query
+      const skipPage = (+page * size) + 1
       const result = await fuelDataCollection
-        .find({})
-        .sort({ date: 1, })
+        .find({}).skip(skipPage).limit(+size)
+        .sort({date: -1  ,slipNo: -1  })
         .toArray();
       res.send(result);
     });
@@ -225,7 +239,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/pgRunAllList",verifyJWT, async (req, res) => {
+    app.get("/pgRunAllList", verifyJWT, async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
@@ -235,13 +249,13 @@ async function run() {
         .toArray();
       res.send(result);
     });
- app.get("/ApprovedAllPgRun/pageCount",async(req,res)=>{
-  const totalPgRunData= await pgRunDataCollection.estimatedDocumentCount() 
-  res.send({lengthPgRunData:totalPgRunData})
- })
-    app.get("/ApprovedAllPgRun",verifyJWT, async (req, res) => {
-      const {page,size}=req.query 
-      const skipPage= (+page*size)+1 
+    app.get("/ApprovedAllPgRun/pageCount", async (req, res) => {
+      const totalPgRunData = await pgRunDataCollection.estimatedDocumentCount()
+      res.send({ lengthPgRunData: totalPgRunData })
+    })
+    app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
+      const { page, size } = req.query
+      const skipPage = (+page * size) + 1
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter).skip(skipPage).limit(+size)
@@ -330,7 +344,7 @@ async function run() {
         },
         {
           $project: {
-            _id:0,
+            _id: 0,
             name: "$_id",
             fuelQuantity: 1,
             fuelConsume: { $round: ["$fuelConsume", 2] },
@@ -344,7 +358,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/receiveFuelOncall",verifyJWT, async (req, res) => {
+    app.get("/receiveFuelOncall", verifyJWT, async (req, res) => {
 
       const pipeline = [
         {
@@ -370,8 +384,15 @@ async function run() {
       res.send(receivedFuel)
     })
 
+     app.get("/emInfo/count", async (req, res) => {
+      const totalPgRunData = await EMDataCollection.estimatedDocumentCount()
+      res.send({ lengthOfData: totalPgRunData })
+    })
     app.get("/emInfo", verifyJWT, async (req, res) => {
-      const result = await EMDataCollection.find({})
+       const { page, size } = req.query
+      const skipPage = (+page * size) + 1
+      const result = await EMDataCollection
+      .find({}).skip(skipPage).limit(+size)
         .sort({ date: -1 })
         .toArray();
       res.send(result);
@@ -428,7 +449,7 @@ async function run() {
         },
         {
           $project: {
-            parsedDate: 0 
+            parsedDate: 0
           }
         }
       ]
@@ -799,17 +820,17 @@ async function run() {
           }
         },
         {
-          $sort:{
+          $sort: {
             nextPlanDate: -1
           }
         },
-        
+
         {
           $project: {
-            parsedDate: 0 
+            parsedDate: 0
           }
         }
-        
+
       ]
       //console.log(targetDate)
       const result = await fcuFilterChangeLatestRecord.aggregate(pipeline).sort({ date: 1 }).toArray()
@@ -918,7 +939,7 @@ async function run() {
 
     app.get("/siteIssues/pending", async (req, res) => {
       const filter = { status: "pending" }
-      const result = await siteIssueCollection.find(filter).sort({date:-1}).toArray()
+      const result = await siteIssueCollection.find(filter).sort({ date: -1 }).toArray()
       res.send(result)
     })
 
