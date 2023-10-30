@@ -193,17 +193,17 @@ async function run() {
       res.send(result);
     });
 
-     app.get("/onCall/fuelListAll/count", async (req, res) => {
+    app.get("/onCall/fuelListAll/count", async (req, res) => {
       const totalPgRunData = await fuelDataOncallCollection.estimatedDocumentCount()
       res.send({ lengthOfData: totalPgRunData })
     })
 
     app.get("/onCall/fuelListAll", verifyJWT, async (req, res) => {
-       const { page, size } = req.query
+      const { page, size } = req.query
       const skipPage = (+page * size) + 1
       const result = await fuelDataOncallCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({date: -1  ,slipNo: -1  })
+        .sort({ date: -1, slipNo: -1 })
         .toArray();
       res.send(result);
     });
@@ -218,7 +218,7 @@ async function run() {
       const skipPage = (+page * size) + 1
       const result = await fuelDataCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({date: -1  ,slipNo: -1  })
+        .sort({ date: -1, slipNo: -1 })
         .toArray();
       res.send(result);
     });
@@ -384,15 +384,15 @@ async function run() {
       res.send(receivedFuel)
     })
 
-     app.get("/emInfo/count", async (req, res) => {
+    app.get("/emInfo/count", async (req, res) => {
       const totalPgRunData = await EMDataCollection.estimatedDocumentCount()
       res.send({ lengthOfData: totalPgRunData })
     })
     app.get("/emInfo", verifyJWT, async (req, res) => {
-       const { page, size } = req.query
+      const { page, size } = req.query
       const skipPage = (+page * size) + 1
       const result = await EMDataCollection
-      .find({}).skip(skipPage).limit(+size)
+        .find({}).skip(skipPage).limit(+size)
         .sort({ date: -1 })
         .toArray();
       res.send(result);
@@ -720,18 +720,18 @@ async function run() {
     });
 
     // Site info collection API
+    app.get("/siteData/count", async (req, res) => {
+      const totalPgRunData = await siteDataCollection.estimatedDocumentCount()
+      res.send({ lengthOfData: totalPgRunData })
+    })
     app.get("/siteData", verifyJWT, async (req, res) => {
-      //console.log(req.query.size)
-      const page = parseInt(req.query.page);
-      const size = parseInt(req.query.size);
-      const sites = siteDataCollection.find({});
-      const result = await sites
-        .skip(page * size)
-        .limit(size)
+      const { page, size } = req.query
+      const skipPage = (+page * size) + 1
+      const result = await siteDataCollection
+        .find({}).skip(skipPage).limit(+size)
         .sort({ siteId: 1 })
         .toArray();
-      const count = await siteDataCollection.estimatedDocumentCount();
-      res.send({ result, count: count });
+      res.send(result);
     });
 
     app.get("/searchSite", async (req, res) => {
