@@ -200,6 +200,7 @@ async function run() {
 
     app.get("/onCall/fuelListAll", verifyJWT, async (req, res) => {
       const { page, size } = req.query
+      //console.log(size)
       const skipPage = (+page * size) + 1
       const result = await fuelDataOncallCollection
         .find({}).skip(skipPage).limit(+size)
@@ -604,7 +605,7 @@ async function run() {
     app.get("/dgMaterialInfo", verifyJWT, async (req, res) => {
       const result = await dgUseMaterialCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.send(result);
     });
