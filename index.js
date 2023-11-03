@@ -3,7 +3,7 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion,ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -15,7 +15,7 @@ app.use(express.json());
   allowedHeaders: 'Content-Type,Authorization',
 }; */
 
-/* app.post('/:jwt', async (req, res) => {
+/* app.post('/jwt', async (req, res) => {
      // console.log('jwt hit korese')
       const userEmail = await req.body
       //console.log(userInfo)
@@ -24,7 +24,7 @@ app.use(express.json());
       }, process.env.ACCESS_TOKEN, { expiresIn: "1hr" })
       res.send({ token: token })
     }) */
-    
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
 const client = new MongoClient(uri, {
@@ -353,7 +353,7 @@ async function run() {
       res.json(result)
     })
 
-    app.get("/receiveFuelOncall", verifyJWT, async (req, res) => {
+    app.get("/receiveFuelOncall", async (req, res) => {
 
       const pipeline = [
         {
@@ -403,11 +403,16 @@ async function run() {
       const updateDoc = {
         $set: updateInfo,
       };
-      const result = await EMDataCollection.updateOne(
-        filter,
-        updateDoc,
-        options
+      const result = await EMDataCollection.updateOne(filter,updateDoc,options
       );
+      res.json(result);
+    });
+
+    app.delete("/emInfo/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      //console.log(id)
+      const filter = { _id: ObjectId(id) };
+      const result = await EMDataCollection.deleteOne(filter);
       res.json(result);
     });
 
@@ -416,7 +421,7 @@ async function run() {
     app.get("/dgServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgServicingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.json(result);
     });
@@ -547,6 +552,14 @@ async function run() {
       res.json(result);
     });
 
+    app.delete("/dgRefuel/:id", verifyJWT, async (req, res) => {
+  const id = req.params.id;
+  //console.log(id)
+  const filter = { _id: ObjectId(id) };
+  const result = await dgRefuelingCollection.deleteOne(filter);
+  res.json(result);
+});
+
     //For  Dg all ReFueling collection api
     app.post("/dgAllRefueling", verifyJWT, async (req, res) => {
       const refuel = req.body;
@@ -564,7 +577,7 @@ async function run() {
       res.json(result);
     });
 
-    app.put("/rectifier",verifyJWT, async (req, res) => {
+    app.put("/rectifier", verifyJWT, async (req, res) => {
       const brandInfo = req.query.brand;
       //console.log(brandInfo)
       const rectifierInfo = req.body;
@@ -603,6 +616,15 @@ async function run() {
         .toArray();
       res.json(result);
     });
+
+    app.delete("/dgMaterial/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      //console.log(id)
+      const filter = { _id: ObjectId(id) };
+      const result = await dgUseMaterialCollection.deleteOne(filter)
+      res.json(result)
+    })
+
     app.get("/rectifier", verifyJWT, async (req, res) => {
       const result = await rectifierCollection.find({}).toArray();
       res.json(result);
@@ -773,7 +795,7 @@ async function run() {
     app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
-        .sort({latestServiceDate:1 })
+        .sort({ latestServiceDate: 1 })
         .toArray();
       res.json(result);
     });
