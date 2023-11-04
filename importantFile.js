@@ -62,11 +62,11 @@
 // }
 
 
-// admin && <td className='border border-slate-300'>
+// {admin && <td className='border border-slate-300'>
 //                                         <button className='btn btn-link' onClick={()=>handleDelete(issue._id)}>
 //                                         <TrashIcon className='w-6 h-6 text-red-400'/>
 //                                         </button>
-//                                       </td>
+//                                       </td>}
 
 
 // className='whitespace-pre-line border border-slate-300 '
@@ -100,3 +100,18 @@
 
 // const [user] = useAuthState(auth)
 //   const [admin] = useAdmin(user)
+
+// Swal.fire({
+//   title: `Sorry, Picture Not Found !! `,
+//   width: 400,
+//   padding: '2em',
+//   color: '#FFCB24',
+//   background: '#fff url(/images/trees.png)',
+//   backdrop: `
+//       rgba(0,0,123,0.4)
+//     url("/images/nyan-cat.gif")
+//     left top
+//     no-repeat
+//   `
+
+// });

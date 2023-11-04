@@ -403,7 +403,7 @@ async function run() {
       const updateDoc = {
         $set: updateInfo,
       };
-      const result = await EMDataCollection.updateOne(filter,updateDoc,options
+      const result = await EMDataCollection.updateOne(filter, updateDoc, options
       );
       res.json(result);
     });
@@ -465,7 +465,7 @@ async function run() {
     app.get("/dgAllServiceInfo", verifyJWT, async (req, res) => {
       const result = await dgAllServicingCollection
         .find({})
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .toArray();
       res.json(result);
     });
@@ -503,6 +503,14 @@ async function run() {
       const result = await dgServicingCollection.deleteMany({
         siteId: { $in: sites },
       });
+      res.json(result);
+    });
+
+    app.delete("/dgServiceInfo/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      //console.log(id)
+      const filter = { _id: ObjectId(id) };
+      const result = await dgServicingCollection.deleteOne(filter);
       res.json(result);
     });
 
@@ -553,12 +561,12 @@ async function run() {
     });
 
     app.delete("/dgRefuel/:id", verifyJWT, async (req, res) => {
-  const id = req.params.id;
-  //console.log(id)
-  const filter = { _id: ObjectId(id) };
-  const result = await dgRefuelingCollection.deleteOne(filter);
-  res.json(result);
-});
+      const id = req.params.id;
+      //console.log(id)
+      const filter = { _id: ObjectId(id) };
+      const result = await dgRefuelingCollection.deleteOne(filter);
+      res.json(result);
+    });
 
     //For  Dg all ReFueling collection api
     app.post("/dgAllRefueling", verifyJWT, async (req, res) => {
