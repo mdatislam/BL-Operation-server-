@@ -15,6 +15,9 @@ app.use(express.json());
   allowedHeaders: 'Content-Type,Authorization',
 }; */
 
+//https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
+//https://backend.bloperation.com
+
 /* app.post('/jwt', async (req, res) => {
      // console.log('jwt hit korese')
       const userEmail = await req.body
