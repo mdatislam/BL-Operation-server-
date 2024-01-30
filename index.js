@@ -9,11 +9,11 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-/* const corsOptions = {
-  origin: 'https://bloperation.com',
+ const corsOptions = {
+  origin: 'https://bl-operation.web.app/',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
-}; */
+}; 
 
 //https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
 //https://backend.bloperation.com
