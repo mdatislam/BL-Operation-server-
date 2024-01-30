@@ -172,7 +172,7 @@ async function run() {
         return res.json({ msg: "This Slip Already Used" });
       }
     });
-    app.get("/fuelList", verifyJWT, async (req, res) => {
+    app.get("/fuelList", async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { fuelReceiverEmail: email };
