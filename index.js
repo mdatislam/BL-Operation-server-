@@ -270,7 +270,9 @@ async function run() {
 
     app.put("/pgRunList/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
+      //console.log(id)
       const approvalInfo = req.body;
+      //console.log(approvalInfo)
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
@@ -388,7 +390,7 @@ async function run() {
       const skipPage = (+page * size) + 1
       const result = await EMDataCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({ date: -1 })
+        .sort({ date: 1,siteId:1 })
         .toArray();
       res.json(result);
     });
