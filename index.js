@@ -1,7 +1,7 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
-require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -15,15 +15,7 @@ app.use(express.json());
 //   allowedHeaders: 'Content-Type,Authorization',
 // }; 
 
-app.post('/jwt', async (req, res) => {
-     // console.log('jwt hit korese')
-      const userEmail = await req.body
-      //console.log(userInfo)
-      const token = jwt.sign({
-        email: userEmail,
-      }, process.env.ACCESS_TOKEN, { expiresIn: "1hr" })
-      res.send({ token: token })
-    }) 
+
 
 //https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
 //https://backend.bloperation.com
@@ -55,10 +47,12 @@ const client = new MongoClient(uri, {
 
 
 
+
 const run = async()=>{
  {
   try {
-    await client.connect();
+    //await client.connect();
+    console.log("The mongodb connect");
 
     /* Collection Part Start */
 
