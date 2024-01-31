@@ -988,6 +988,9 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.json("we are tiger from Rangpur");
 });
+app.get("/xxx", (req, res) => {
+  res.json("This is xx route");
+});
 
 app.listen(port, () => {
   console.log(`BL Operation listening on port ${port}`);
