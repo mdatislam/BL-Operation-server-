@@ -20,6 +20,32 @@ const client = new MongoClient(uri, {
 
 console.log("The mongodb b4 connect");
 
+// const corsOptions = {
+//   origin: 'https://bl-operation.web.app',
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   allowedHeaders: 'Content-Type,Authorization',
+// }; 
+
+
+
+//https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
+//https://backend.bloperation.com
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  // console.log(authHeader)
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorize access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "access forbidden" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 const run = async () => {
  {
@@ -953,7 +979,11 @@ const run = async () => {
   }
 }
 }
-run().catch((err) => console.log(err));
+
+app.get("/vehicle", async (req, res) => {
+  const result = await vehicleCollection.find({}).toArray()
+  res.json(result)
+})
 
 app.get("/", (req, res) => {
   res.json("we are tiger from Rangpur");
@@ -962,6 +992,7 @@ app.get("/", (req, res) => {
 app.get("/xxx", (req, res) => {
   res.json("This is xxx route");
 });
+run().catch((err) => console.log(err));
 
 app.listen(port, () => {
   console.log(`BL Operation listening on port ${port}`);
