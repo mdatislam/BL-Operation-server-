@@ -988,8 +988,9 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.json("we are tiger from Rangpur");
 });
-app.get("/xxx", (req, res) => {
-  res.json("This is xx route");
+app.get("/fcuFilter", async (req, res) => {
+  const result = await fcuFilterCollection.find().toArray();
+  res.json(result);
 });
 
 app.listen(port, () => {
