@@ -28,16 +28,6 @@ app.post('/jwt', async (req, res) => {
 //https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
 //https://backend.bloperation.com
 
-
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
-//console.log(uri);
-const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1,
-});
-
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   // console.log(authHeader)
@@ -55,7 +45,18 @@ function verifyJWT(req, res, next) {
 }
 
 
-async function run() {
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
+//console.log(uri);
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+
+
+
+const run = async()=>{
+ {
   try {
     await client.connect();
 
@@ -983,14 +984,15 @@ async function run() {
   } finally {
   }
 }
-run().catch(console.dir);
+}
+run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
   res.json("we are tiger from Rangpur");
 });
-app.get("/fcuFilter", async (req, res) => {
-  const result = await fcuFilterCollection.find().toArray();
-  res.json(result);
+
+app.get("/xxx", (req, res) => {
+  res.json("This is xxx route");
 });
 
 app.listen(port, () => {
