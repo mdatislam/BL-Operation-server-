@@ -18,7 +18,7 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-console.log("The mongodb b4 connect");
+
 
 // const corsOptions = {
 //   origin: 'https://bl-operation.web.app',
@@ -48,7 +48,7 @@ function verifyJWT(req, res, next) {
 }
 
 const run = async () => {
- {
+ 
   try {
     await client.connect();
 
@@ -977,13 +977,10 @@ const run = async () => {
 
   } finally {
   }
-}
+
 }
 
-app.get("/vehicle", async (req, res) => {
-  const result = await vehicleCollection.find({}).toArray()
-  res.json(result)
-})
+
 
 app.get("/", (req, res) => {
   res.json("we are tiger from Rangpur");
