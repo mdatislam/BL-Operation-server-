@@ -45,13 +45,14 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+console.log("The mongodb b4 connect");
 
 
-
-const run = async()=>{
+const run = async () => {
  {
   try {
     await client.connect();
+
     console.log("The mongodb connect");
 
     /* Collection Part Start */
