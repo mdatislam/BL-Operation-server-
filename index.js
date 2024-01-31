@@ -51,7 +51,7 @@ const client = new MongoClient(uri, {
 const run = async()=>{
  {
   try {
-    //await client.connect();
+    await client.connect();
     console.log("The mongodb connect");
 
     /* Collection Part Start */
