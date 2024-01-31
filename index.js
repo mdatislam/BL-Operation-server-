@@ -9,33 +9,6 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// const corsOptions = {
-//   origin: 'https://bl-operation.web.app',
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   allowedHeaders: 'Content-Type,Authorization',
-// }; 
-
-
-
-//https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
-//https://backend.bloperation.com
-
-function verifyJWT(req, res, next) {
-  const authHeader = req.headers.authorization;
-  // console.log(authHeader)
-  if (!authHeader) {
-    return res.status(401).send({ message: "unauthorize access" });
-  }
-  const token = authHeader.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
-    if (err) {
-      return res.status(403).send({ message: "access forbidden" });
-    }
-    req.decoded = decoded;
-    next();
-  });
-}
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bzozooi.mongodb.net/?retryWrites=true&w=majority`;
 //console.log(uri);
