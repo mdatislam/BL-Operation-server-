@@ -48,7 +48,7 @@ function verifyJWT(req, res, next) {
 }
 
 const run = async () => {
-
+ 
   try {
     await client.connect();
 
@@ -392,14 +392,7 @@ const run = async () => {
       const skipPage = (+page * size) + 1
       const result = await EMDataCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({ date: -1 })
-        .toArray();
-      res.json(result);
-    });
-
-    app.get("/emInfo/all", async (req, res) => {
-      const result = await EMDataCollection
-        .find({})
+        .sort({ date: 1,siteId:1 })
         .toArray();
       res.json(result);
     });
@@ -880,23 +873,23 @@ const run = async () => {
       res.json(result);
     });
     //For  FCU filter change Latest record collection api
-    app.put("/fcuFilterChangeLatestRecord/:siteID", async (req, res) => {
-      const siteNo = req.params.siteID;
-      //console.log(siteNo);
-      const updateInfo = req.body;
-      //console.log(updateInfo)
-      const filter = { siteId: siteNo };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: updateInfo,
-      };
-      const result = await fcuFilterChangeLatestRecord.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
-      res.json(result);
-    }
+    app.put("/fcuFilterChangeLatestRecord/:siteID",async (req, res) => {
+        const siteNo = req.params.siteID;
+        //console.log(siteNo);
+        const updateInfo = req.body;
+        //console.log(updateInfo)
+        const filter = { siteId: siteNo };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: updateInfo,
+        };
+        const result = await fcuFilterChangeLatestRecord.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.json(result);
+      }
     );
 
     // FCU filter Receive Record API
