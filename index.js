@@ -122,7 +122,7 @@ const run = async () => {
     })
 
     // get user info API & token issue API when user create
-    app.put("/user", async (req, res) => {
+    app.put("/user",async (req, res) => {
       const userUpdate = req.body;
       const email = userUpdate.email;
       //console.log(email)
@@ -136,14 +136,14 @@ const run = async () => {
     });
 
     // pgRunData update into data base API
-    app.post("/pgRunData", async (req, res) => {
+    app.post("/pgRunData", verifyJWT,async (req, res) => {
       const pgData = req.body;
       //console.log(pgData)
       const result = await pgRunDataCollection.insertOne(pgData);
       res.json(result);
     });
 
-    app.post("/fuelData", async (req, res) => {
+    app.post("/fuelData", verifyJWT,async (req, res) => {
       const fuelData = req.body;
       // console.log(fuelData)
       const fuelSlipNo = fuelData.slipNo;
@@ -157,7 +157,7 @@ const run = async () => {
         return res.json({ msg: "This Slip Already Used" });
       }
     });
-    app.post("/fuelDataOncall", async (req, res) => {
+    app.post("/fuelDataOncall", verifyJWT,async (req, res) => {
       const fuelData = req.body;
       //console.log(fuelData)
       const fuelSlipNo = fuelData.slipNo;
@@ -171,7 +171,7 @@ const run = async () => {
         return res.json({ msg: "This Slip Already Used" });
       }
     });
-    app.get("/fuelList", async (req, res) => {
+    app.get("/fuelList", verifyJWT,async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { fuelReceiverEmail: email };
@@ -181,7 +181,7 @@ const run = async () => {
         .toArray();
       res.json(result);
     });
-    app.get("/fuelListAllOncall", async (req, res) => {
+    app.get("/fuelListAllOncall", verifyJWT,async (req, res) => {
       const result = await fuelDataOncallCollection
         .find({})
         .sort({ slipNo: 1 })
@@ -189,30 +189,30 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/onCall/fuelListAll/count", async (req, res) => {
+    app.get("/onCall/fuelListAll/count", verifyJWT,async (req, res) => {
       const totalPgRunData = await fuelDataOncallCollection.estimatedDocumentCount()
       res.json({ lengthOfData: totalPgRunData })
     })
 
-    app.get("/onCall/fuelListAll", async (req, res) => {
+    app.get("/onCall/fuelListAll", verifyJWT,async (req, res) => {
       const { page, size } = req.query
       //console.log(size)
-      const skipPage = (+page * size) + 1
+      const skipPage = (+page * size) 
       const result = await fuelDataOncallCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({ date: -1, slipNo: -1 })
+        .sort({ date: -1, })
         .toArray();
       res.json(result);
     });
 
-    app.get("/fuelListAll/count", async (req, res) => {
+    app.get("/fuelListAll/count", verifyJWT,async (req, res) => {
       const totalPgRunData = await fuelDataCollection.estimatedDocumentCount()
       res.json({ lengthOfData: totalPgRunData })
     })
 
-    app.get("/fuelListAll", async (req, res) => {
+    app.get("/fuelListAll", verifyJWT,async (req, res) => {
       const { page, size } = req.query
-      const skipPage = (+page * size) + 1
+      const skipPage = (+page * size) 
       const result = await fuelDataCollection
         .find({}).skip(skipPage).limit(+size)
         .sort({ date: -1, slipNo: -1 })
@@ -220,7 +220,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/receivedFuel/:id", async (req, res) => {
+    app.delete("/receivedFuel/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -228,7 +228,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/onCall/receivedFuel/:id", async (req, res) => {
+    app.delete("/onCall/receivedFuel/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -236,7 +236,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/pgRunAllList", async (req, res) => {
+    app.get("/pgRunAllList", verifyJWT,async (req, res) => {
       const email = req.query.email;
       //console.log(email)
       const filter = { pgRunnerEmail: email };
@@ -246,13 +246,13 @@ const run = async () => {
         .toArray();
       res.json(result);
     });
-    app.get("/ApprovedAllPgRun/pageCount", async (req, res) => {
+    app.get("/ApprovedAllPgRun/pageCount", verifyJWT,async (req, res) => {
       const totalPgRunData = await pgRunDataCollection.estimatedDocumentCount()
       res.json({ lengthPgRunData: totalPgRunData })
     })
-    app.get("/ApprovedAllPgRun", async (req, res) => {
+    app.get("/ApprovedAllPgRun", verifyJWT,async (req, res) => {
       const { page, size } = req.query
-      const skipPage = (+page * size) + 1
+      const skipPage = (+page * size) 
       const filter = { status: "Approved" };
       const result = await pgRunDataCollection
         .find(filter).skip(skipPage).limit(+size)
@@ -261,7 +261,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/PendingAllPgRun", async (req, res) => {
+    app.get("/PendingAllPgRun", verifyJWT,async (req, res) => {
       const filter = { status: "Pending" };
       const result = await pgRunDataCollection
         .find(filter)
@@ -270,7 +270,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.put("/pgRunList/:id", async (req, res) => {
+    app.put("/pgRunList/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const approvalInfo = req.body;
@@ -288,7 +288,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/ApprovalList", async (req, res) => {
+    app.get("/ApprovalList", verifyJWT,async (req, res) => {
       const email = req.query.email;
       const filter = {
         onCallEmail: email,
@@ -302,7 +302,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/fuelBalance", async (req, res) => {
+    app.get("/fuelBalance", verifyJWT,async (req, res) => {
       const pipeline = [
         {
           $addFields: {
@@ -357,7 +357,7 @@ const run = async () => {
       res.json(result)
     })
 
-    app.get("/receiveFuelOncall", async (req, res) => {
+    app.get("/receiveFuelOncall", verifyJWT,async (req, res) => {
 
       const pipeline = [
         {
@@ -383,28 +383,30 @@ const run = async () => {
       res.json(receivedFuel)
     })
 
-    app.get("/emInfo/count", async (req, res) => {
-      const totalPgRunData = await EMDataCollection.estimatedDocumentCount()
-      res.json({ lengthOfData: totalPgRunData })
+    app.get("/emInfo/count", verifyJWT,async (req, res) => {
+      const totalEmData = await EMDataCollection.estimatedDocumentCount()
+      //console.log(totalEmData)
+      res.json({ lengthOfData: totalEmData })
     })
-    app.get("/emInfo", async (req, res) => {
+    app.get("/emInfo", verifyJWT,async (req, res) => {
       const { page, size } = req.query
-      const skipPage = (+page * size) + 1
+      //console.log(page,size)
+      const skipPage = (+page * size) 
       const result = await EMDataCollection
         .find({}).skip(skipPage).limit(+size)
-        .sort({ date: -1 })
+        .sort({ date:-1 })
         .toArray();
       res.json(result);
     });
 
-    app.get("/emInfo/all", async (req, res) => {
+    app.get("/emInfo/all", verifyJWT,async (req, res) => {
       const result = await EMDataCollection
         .find({})
         .toArray();
       res.json(result);
     });
 
-    app.put("/emInfo/:siteID", async (req, res) => {
+    app.put("/emInfo/:siteID", verifyJWT,async (req, res) => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
@@ -419,7 +421,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/emInfo/:id", async (req, res) => {
+    app.delete("/emInfo/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -429,7 +431,7 @@ const run = async () => {
 
     //For  DgService Part API from here
 
-    app.get("/dgServiceInfo", async (req, res) => {
+    app.get("/dgServiceInfo", verifyJWT,async (req, res) => {
       const result = await dgServicingCollection
         .find({})
         .sort({ date: -1 })
@@ -437,7 +439,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/dgServiceInfo/planSite/:target", async (req, res) => {
+    app.get("/dgServiceInfo/planSite/:target", verifyJWT,async (req, res) => {
 
       const targetDate = new Date(req.params.target)
       const pipeline = [
@@ -473,7 +475,7 @@ const run = async () => {
       res.json(result) */
     })
 
-    app.get("/dgAllServiceInfo", async (req, res) => {
+    app.get("/dgAllServiceInfo", verifyJWT,async (req, res) => {
       const result = await dgAllServicingCollection
         .find({})
         .sort({ date: -1 })
@@ -482,13 +484,13 @@ const run = async () => {
     });
 
     //For  Dg all Servicing collection api
-    app.post("/dgAllServicing", async (req, res) => {
+    app.post("/dgAllServicing", verifyJWT,async (req, res) => {
       const servicing = req.body;
       const result = await dgAllServicingCollection.insertOne(servicing);
       res.json(result);
     });
 
-    app.put("/dgServiceInfo/:siteID", async (req, res) => {
+    app.put("/dgServiceInfo/:siteID", verifyJWT,async (req, res) => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
@@ -508,7 +510,7 @@ const run = async () => {
 
     //DG service record multi delete api
 
-    app.delete("/dgServiceInfo/multiDelete", async (req, res) => {
+    app.delete("/dgServiceInfo/multiDelete", verifyJWT,async (req, res) => {
       const sites = req.body;
       //console.log(ids)
       const result = await dgServicingCollection.deleteMany({
@@ -517,7 +519,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/dgServiceInfo/:id", async (req, res) => {
+    app.delete("/dgServiceInfo/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -527,7 +529,7 @@ const run = async () => {
 
     //DG AllService record multi delete api
 
-    app.delete("/dgAllServiceInfo/multiDelete", async (req, res) => {
+    app.delete("/dgAllServiceInfo/multiDelete", verifyJWT,async (req, res) => {
       const sites = req.body;
       //console.log(ids)
       const result = await dgAllServicingCollection.deleteMany({
@@ -537,7 +539,7 @@ const run = async () => {
     });
 
     //DG All ReFueling collection api
-    app.get("/dgAllRefueling", async (req, res) => {
+    app.get("/dgAllRefueling", verifyJWT,async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
         .sort({ date: -1 })
@@ -545,7 +547,7 @@ const run = async () => {
       res.json(result);
     });
     //DG Last ReFueling collection api
-    app.get("/dgRefuelingInfo", async (req, res) => {
+    app.get("/dgRefuelingInfo", verifyJWT,async (req, res) => {
       const result = await dgRefuelingCollection
         .find({})
         .sort({ date: -1 })
@@ -553,7 +555,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.put("/dgRefuelingInfo/:siteID", async (req, res) => {
+    app.put("/dgRefuelingInfo/:siteID", verifyJWT,async (req, res) => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
@@ -571,7 +573,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/dgRefuel/:id", async (req, res) => {
+    app.delete("/dgRefuel/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -580,7 +582,7 @@ const run = async () => {
     });
 
     //For  Dg all ReFueling collection api
-    app.post("/dgAllRefueling", async (req, res) => {
+    app.post("/dgAllRefueling", verifyJWT,async (req, res) => {
       const refuel = req.body;
       //console.log(refuel)
       const result = await dgAllRefuelingCollection.insertOne(refuel);
@@ -588,7 +590,7 @@ const run = async () => {
     });
 
     //DG All ReFueling collection api
-    app.get("/dgAllRefueling", async (req, res) => {
+    app.get("/dgAllRefueling", verifyJWT,async (req, res) => {
       const result = await dgAllRefuelingCollection
         .find({})
         .sort({ date: -1 })
@@ -596,7 +598,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.put("/rectifier", async (req, res) => {
+    app.put("/rectifier", verifyJWT,async (req, res) => {
       const brandInfo = req.query.brand;
       //console.log(brandInfo)
       const rectifierInfo = req.body;
@@ -614,21 +616,21 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/rectifier/:brand", async (req, res) => {
+    app.delete("/rectifier/:brand", verifyJWT,async (req, res) => {
       const filter = { brand: req.params.brand }
       const result = await rectifierCollection.deleteOne(filter)
       res.json(result)
     })
 
     //For Use DG Material collection api
-    app.post("/dgMaterialInfo", async (req, res) => {
+    app.post("/dgMaterialInfo", verifyJWT,async (req, res) => {
       const refuel = req.body;
       //console.log(refuel)
       const result = await dgUseMaterialCollection.insertOne(refuel);
       res.json(result);
     });
 
-    app.get("/dgMaterialInfo", async (req, res) => {
+    app.get("/dgMaterialInfo", verifyJWT,async (req, res) => {
       const result = await dgUseMaterialCollection
         .find({})
         .sort({ date: -1 })
@@ -636,7 +638,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/dgMaterial/:id", async (req, res) => {
+    app.delete("/dgMaterial/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -644,12 +646,12 @@ const run = async () => {
       res.json(result)
     })
 
-    app.get("/rectifier", async (req, res) => {
+    app.get("/rectifier", verifyJWT,async (req, res) => {
       const result = await rectifierCollection.find({}).toArray();
       res.json(result);
     });
 
-    app.delete("/pgRun/:id", async (req, res) => {
+    app.delete("/pgRun/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(id)
       const filter = { _id: ObjectId(id) };
@@ -657,7 +659,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/user/admin/:email", async (req, res) => {
+    app.get("/user/admin/:email",async (req, res) => {
       const requesterEmail = req.params.email;
       const filter = { email: requesterEmail };
       const user = await userCollection.findOne(filter);
@@ -666,7 +668,7 @@ const run = async () => {
       res.json({ admin: isAdmin });
     });
 
-    app.put("/profileChange/:email", async (req, res) => {
+    app.put("/profileChange/:email", verifyJWT,async (req, res) => {
       const userEmail = req.params.email;
       const userProfile = req.body;
       const filter = { email: userEmail };
@@ -678,11 +680,11 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/userList", async (req, res) => {
+    app.get("/userList", verifyJWT,async (req, res) => {
       const result = await userCollection.find({}).toArray();
       res.json(result);
     });
-    app.get("/userList/users", async (req, res) => {
+    app.get("/userList/users", verifyJWT,async (req, res) => {
       const userEmail = req.query.email;
       //console.log(userEmail);
       const result = await userCollection.find({ email: userEmail }).toArray();
@@ -690,7 +692,7 @@ const run = async () => {
     });
 
     /* pg runner filter */
-    app.get("/userList/pgRunner", async (req, res) => {
+    app.get("/userList/pgRunner", verifyJWT,async (req, res) => {
       const result = await userCollection
         .find({ otherRole: "PG Runner" })
         .sort({ pgRunnerName: 1 })
@@ -698,7 +700,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete('/user/delete/:email', async (req, res) => {
+    app.delete('/user/delete/:email', verifyJWT,async (req, res) => {
       const userEmail = req.params.email
       console.log(userEmail)
       const result = await userCollection.deleteOne({ email: userEmail })
@@ -707,12 +709,12 @@ const run = async () => {
 
     /* PG collection section */
 
-    app.get("/pgList", async (req, res) => {
+    app.get("/pgList", verifyJWT,async (req, res) => {
       const result = await PgCollection.find().sort({ pgNo: 1 }).toArray();
       res.json(result);
     });
 
-    app.put("/pgList/:PgNo", async (req, res) => {
+    app.put("/pgList/:PgNo", verifyJWT,async (req, res) => {
       const pNo = req.params.PgNo;
       const updateInfo = req.body;
       //console.log(pNo)
@@ -727,7 +729,7 @@ const run = async () => {
 
     // siteData collection API
 
-    app.put("/siteInfo/:siteID", async (req, res) => {
+    app.put("/siteInfo/:siteID", verifyJWT,async (req, res) => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
@@ -746,7 +748,7 @@ const run = async () => {
     });
 
     // Site ID collection API
-    app.get("/siteInfo", async (req, res) => {
+    app.get("/siteInfo", verifyJWT,async (req, res) => {
       const result = await siteDataCollection
         .find()
         .project({ siteId: 1 })
@@ -756,13 +758,13 @@ const run = async () => {
     });
 
     // Site info collection API
-    app.get("/siteData/count", async (req, res) => {
+    app.get("/siteData/count", verifyJWT,async (req, res) => {
       const totalPgRunData = await siteDataCollection.estimatedDocumentCount()
       res.json({ lengthOfData: totalPgRunData })
     })
-    app.get("/siteData", async (req, res) => {
+    app.get("/siteData", verifyJWT,async (req, res) => {
       const { page, size } = req.query
-      const skipPage = (+page * size) + 1
+      const skipPage = (+page * size)
       const result = await siteDataCollection
         .find({}).skip(skipPage).limit(+size)
         .sort({ siteId: 1 })
@@ -770,7 +772,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/searchSite", async (req, res) => {
+    app.get("/searchSite", verifyJWT,async (req, res) => {
       const query = req.query.site;
       //console.log(query)
       const result = await siteDataCollection.find({ siteId: query }).toArray();
@@ -778,14 +780,14 @@ const run = async () => {
     });
 
     // LubOil Receive Record API
-    app.post("/lubOil", async (req, res) => {
+    app.post("/lubOil", verifyJWT,async (req, res) => {
       const lubOilData = req.body;
       // console.log(lubOilData)
       const result = await lubOilCollection.insertOne(lubOilData);
       res.json(result);
     });
 
-    app.get("/lubOil", async (req, res) => {
+    app.get("/lubOil", verifyJWT,async (req, res) => {
       const result = await lubOilCollection
         .find({})
 
@@ -793,7 +795,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/lubOilList/:id", async (req, res) => {
+    app.delete("/lubOilList/:id", verifyJWT,async (req, res) => {
       const id = req.params.id;
       //console.log(pgNo)
       const filter = { _id: ObjectId(id) };
@@ -801,7 +803,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/pgList/:pgNo", async (req, res) => {
+    app.delete("/pgList/:pgNo", verifyJWT,async (req, res) => {
       const pgNo = req.params.pgNo;
       //console.log(pgNo)
       const filter = { pgNo: pgNo };
@@ -811,7 +813,7 @@ const run = async () => {
 
     /* FCU Part start */
 
-    app.get("/fcuFilterChangeLatestRecord", async (req, res) => {
+    app.get("/fcuFilterChangeLatestRecord", verifyJWT,async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
         .sort({ latestServiceDate: 1 })
@@ -819,7 +821,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/fcuFilterChangeLatestRecord/:siteCode", async (req, res) => {
+    app.get("/fcuFilterChangeLatestRecord/:siteCode", verifyJWT,async (req, res) => {
       const site = req.params.siteCode
       const result = await fcuFilterChangeLatestRecord
         .find({ siteId: site })
@@ -827,7 +829,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/fcuFilterChangeAllRecord", async (req, res) => {
+    app.get("/fcuFilterChangeAllRecord", verifyJWT,async (req, res) => {
       const result = await fcuFilterChangeAllRecord
         .find({})
         .sort({ nextPlanDate: 1 })
@@ -835,7 +837,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/fcuFilterChangeLatestRecord/plan/:target", async (req, res) => {
+    app.get("/fcuFilterChangeLatestRecord/plan/:target", verifyJWT,async (req, res) => {
       const targetDate = new Date(req.params.target)
       const pipeline = [
         {
@@ -874,13 +876,13 @@ const run = async () => {
     })
 
     //For  FCU filter change all record collection api
-    app.post("/fcuFilterChangeAllRecord", async (req, res) => {
+    app.post("/fcuFilterChangeAllRecord", verifyJWT,async (req, res) => {
       const fcuFilter = req.body;
       const result = await fcuFilterChangeAllRecord.insertOne(fcuFilter);
       res.json(result);
     });
     //For  FCU filter change Latest record collection api
-    app.put("/fcuFilterChangeLatestRecord/:siteID", async (req, res) => {
+    app.put("/fcuFilterChangeLatestRecord/:siteID", verifyJWT,async (req, res) => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
@@ -900,19 +902,19 @@ const run = async () => {
     );
 
     // FCU filter Receive Record API
-    app.post("/fcuFilter", async (req, res) => {
+    app.post("/fcuFilter", verifyJWT,async (req, res) => {
       const fcuFilterData = req.body;
       // console.log(fcuData)
       const result = await fcuFilterCollection.insertOne(fcuFilterData);
       res.json(result);
     });
 
-    app.get("/fcuFilter", async (req, res) => {
+    app.get("/fcuFilter", verifyJWT,async (req, res) => {
       const result = await fcuFilterCollection.find().toArray();
       res.json(result);
     });
 
-    app.delete("/fcu/:id", async (req, res) => {
+    app.delete("/fcu/:id", verifyJWT,async (req, res) => {
       const filter = { _id: new ObjectId(req.params.id) }
       const result = await fcuFilterChangeLatestRecord.deleteOne(filter);
       res.json(result);
@@ -921,7 +923,7 @@ const run = async () => {
     /* FCU Part End */
 
     /* Vehicle Api Start */
-    app.put("/vehicle", async (req, res) => {
+    app.put("/vehicle", verifyJWT,async (req, res) => {
       const vehicleInfo = req.body
       const vehicleNo = vehicleInfo.vehicleNo
       const filter = { vehicleNo: vehicleNo }
@@ -933,12 +935,12 @@ const run = async () => {
       res.json(newVehicle)
     })
 
-    app.get("/vehicle", async (req, res) => {
+    app.get("/vehicle", verifyJWT,async (req, res) => {
       const result = await vehicleCollection.find({}).toArray()
       res.json(result)
     })
 
-    app.delete("/vehicle/:vehicleNo", async (req, res) => {
+    app.delete("/vehicle/:vehicleNo", verifyJWT,async (req, res) => {
       const filter = { vehicleNo: req.params.vehicleNo }
       const result = await vehicleCollection.deleteOne(filter)
       res.json(result)
@@ -946,13 +948,13 @@ const run = async () => {
 
     /* Site Issue Part start */
 
-    app.post("/siteIssues", async (req, res) => {
+    app.post("/siteIssues", verifyJWT,async (req, res) => {
       const siteIssue = req.body
       const result = await siteIssueCollection.insertOne(siteIssue)
       res.json(result)
     })
 
-    app.put("/siteIssues/:siteId", async (req, res) => {
+    app.put("/siteIssues/:siteId", verifyJWT,async (req, res) => {
       const feedback = req.body
       const siteCode = req.params.siteId
       const filter = { siteId: siteCode }
@@ -965,18 +967,18 @@ const run = async () => {
       res.json(result)
     })
 
-    app.get("/siteIssues", async (req, res) => {
+    app.get("/siteIssues", verifyJWT,async (req, res) => {
       const result = await siteIssueCollection.find({}).toArray()
       res.json(result)
     })
 
-    app.get("/siteIssues/pending", async (req, res) => {
+    app.get("/siteIssues/pending", verifyJWT,async (req, res) => {
       const filter = { status: "pending" }
       const result = await siteIssueCollection.find(filter).sort({ date: -1 }).toArray()
       res.json(result)
     })
 
-    app.delete("/siteIssues/:id", async (req, res) => {
+    app.delete("/siteIssues/:id", verifyJWT,async (req, res) => {
       const filter = { _id: new ObjectId(req.params.id) }
       const result = await siteIssueCollection.deleteOne(filter)
       res.json(result)
