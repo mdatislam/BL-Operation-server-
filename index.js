@@ -30,6 +30,7 @@ const client = new MongoClient(uri, {
 
 //https://bl-operation-server-8udwslvjt-mdatislam.vercel.app
 //https://backend.bloperation.com
+// https://serverom.bl-operation.com/
 
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -112,7 +113,7 @@ const run = async () => {
     // get user info API & token issue API during login
 
     app.post('/jwt', async (req, res) => {
-      console.log('jwt hit korese')
+      //console.log('jwt hit korese')
       const userEmail = await req.body
       //console.log(userInfo)
       const token = jwt.sign({
@@ -707,7 +708,7 @@ const run = async () => {
 
     app.delete('/user/delete/:email', verifyJWT, async (req, res) => {
       const userEmail = req.params.email
-      console.log(userEmail)
+      //console.log(userEmail)
       const result = await userCollection.deleteOne({ email: userEmail })
       res.json(result)
     })
@@ -783,6 +784,12 @@ const run = async () => {
       const result = await siteDataCollection.find({ siteId: query }).toArray();
       res.json(result);
     });
+
+    app.delete("/siteData/:siteNo", async(req,res)=>{
+      const siteId= req.params.siteNo 
+      const result = await siteDataCollection.deleteOne({siteId:siteId})
+      res.json(result)
+    })
 
     // LubOil Receive Record API
     app.post("/lubOil", verifyJWT, async (req, res) => {
