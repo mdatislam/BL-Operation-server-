@@ -144,6 +144,20 @@ const run = async () => {
       res.json(result);
     });
 
+    app.put("/pgRunData/:id",verifyJWT, async(req,res)=>{
+      const Id= req.params.id;
+      //console.log(Id)
+      const pgRunDataInfo= req.body;
+      const filter = { _id: new ObjectId(Id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: pgRunDataInfo,
+      };
+      const result = await pgRunDataCollection.updateOne(filter, updateDoc, options)
+      res.json(result);
+
+    })
+
     app.post("/fuelData", verifyJWT, async (req, res) => {
       const fuelData = req.body;
       // console.log(fuelData)
@@ -785,7 +799,7 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/siteData/:siteNo", async(req,res)=>{
+    app.delete("/siteData/:siteNo",verifyJWT, async(req,res)=>{
       const siteId= req.params.siteNo 
       const result = await siteDataCollection.deleteOne({siteId:siteId})
       res.json(result)
