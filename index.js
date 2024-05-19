@@ -857,7 +857,7 @@ const run = async () => {
 
     /* FCU Part start */
 
-    app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
+    app.get("/fcuFilterChangeLatestRecord",verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
         .sort({ latestServiceDate: 1 })
