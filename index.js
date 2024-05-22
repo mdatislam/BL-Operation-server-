@@ -144,10 +144,10 @@ const run = async () => {
       res.json(result);
     });
 
-    app.put("/pgRunData/:id",verifyJWT, async(req,res)=>{
-      const Id= req.params.id;
+    app.put("/pgRunData/:id", verifyJWT, async (req, res) => {
+      const Id = req.params.id;
       //console.log(Id)
-      const pgRunDataInfo= req.body;
+      const pgRunDataInfo = req.body;
       const filter = { _id: new ObjectId(Id) };
       const options = { upsert: true };
       const updateDoc = {
@@ -353,7 +353,8 @@ const run = async () => {
           $group: {
             _id: "$_id",
             fuelConsume: { $avg: "$totalFuelConsume" },
-            fuelQuantity: { $sum: "$fuelReceived" }
+            fuelQuantity: { $sum: "$fuelReceived" },
+
           }
         },
         {
@@ -362,9 +363,13 @@ const run = async () => {
             name: "$_id",
             fuelQuantity: 1,
             fuelConsume: { $round: ["$fuelConsume", 2] },
+            /* balance: { $round: [{ $subtract: ["$fuelQuantity", "$fuelConsume"] }, 2] } */
 
           }
         },
+        /* {
+          $sort: { balance: 1 }
+        } */
 
       ]
 
@@ -428,6 +433,13 @@ const run = async () => {
       //console.log(updateInfo)
       const filter = { siteId: siteNo };
       const options = { upsert: true };
+      const updaterEmail = updateInfo.updaterEmail
+      const updateUser = {
+        $push: {
+          EmUpdate: siteNo
+        }
+      }
+      const emInfoInsert = await userCollection.updateOne({ email: updaterEmail }, updateUser, options)
       const updateDoc = {
         $set: updateInfo,
       };
@@ -517,6 +529,13 @@ const run = async () => {
       //console.log(updateInfo)
       const filter = { siteId: siteNo };
       const options = { upsert: true };
+      const updaterEmail = updateInfo.updaterEmail
+      const updateUser = {
+        $push: {
+          DgService: siteNo
+        }
+      }
+      const serviceInfoInsert = await userCollection.updateOne({ email: updaterEmail }, updateUser, options)
       const updateDoc = {
         $set: updateInfo,
       };
@@ -700,8 +719,27 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/userList", verifyJWT, async (req, res) => {
+    app.get("/userList", async (req, res) => {
       const result = await userCollection.find({}).toArray();
+      res.json(result);
+    });
+
+    app.get("/userList/performance", async (req, res) => {
+      const pipeline = [
+        {
+          $project: {
+            _id: 0,
+            email: 1,
+            name: 1,
+            FCU: { $size: { $ifNull: ["$FCU", []] } },
+            EmUpdate: { $size: { $ifNull: ["$EmUpdate", []] } },
+            DgService: { $size: { $ifNull: ["$DgService", []] } },
+
+          }
+        }
+      ]
+      //console.log(pipeline)
+      const result = await userCollection.aggregate(pipeline).toArray();
       res.json(result);
     });
     app.get("/userList/users", async (req, res) => {
@@ -799,9 +837,9 @@ const run = async () => {
       res.json(result);
     });
 
-    app.delete("/siteData/:siteNo",verifyJWT, async(req,res)=>{
-      const siteId= req.params.siteNo 
-      const result = await siteDataCollection.deleteOne({siteId:siteId})
+    app.delete("/siteData/:siteNo", verifyJWT, async (req, res) => {
+      const siteId = req.params.siteNo
+      const result = await siteDataCollection.deleteOne({ siteId: siteId })
       res.json(result)
     })
 
@@ -857,7 +895,7 @@ const run = async () => {
 
     /* FCU Part start */
 
-    app.get("/fcuFilterChangeLatestRecord",verifyJWT, async (req, res) => {
+    app.get("/fcuFilterChangeLatestRecord", verifyJWT, async (req, res) => {
       const result = await fcuFilterChangeLatestRecord
         .find({})
         .sort({ latestServiceDate: 1 })
@@ -930,9 +968,16 @@ const run = async () => {
       const siteNo = req.params.siteID;
       //console.log(siteNo);
       const updateInfo = req.body;
+      const updaterEmail = updateInfo.updaterEmail
       //console.log(updateInfo)
       const filter = { siteId: siteNo };
       const options = { upsert: true };
+      const updateUser = {
+        $push: {
+          FCU: siteNo
+        }
+      }
+      const fcuInfoInsert = await userCollection.updateOne({ email: updaterEmail }, updateUser, options)
       const updateDoc = {
         $set: updateInfo,
       };
