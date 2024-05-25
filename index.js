@@ -107,6 +107,9 @@ const run = async () => {
     const siteIssueCollection = client
       .db("BL-Operation")
       .collection("siteIssues");
+    const powerShutDownCollection = client
+      .db("BL-Operation")
+      .collection("powerShutDown");
 
     /* Collection Part End */
 
@@ -1071,6 +1074,203 @@ const run = async () => {
       const filter = { _id: new ObjectId(req.params.id) }
       const result = await siteIssueCollection.deleteOne(filter)
       res.json(result)
+    })
+
+    // Power shut down APi
+
+    app.post("/powerShutDown", async (req, res) => {
+      const alarmInfo = req.body
+      //console.log(alarmInfo)
+      const result = await powerShutDownCollection.insertOne(alarmInfo)
+      res.json(result)
+    })
+
+    app.get("/powerShutDown", async (req, res) => {
+      const priorityPipeLine = [
+        {
+          $match:{
+            Alarm_Slogan:"CSL Fault"
+          }
+        },
+        {
+          $group: {
+            _id: "$Priority",
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort:{
+            count:1
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            Priority: "$_id",
+            count: 1
+          }
+        }
+      ]
+      const priorityCount = await powerShutDownCollection.aggregate(priorityPipeLine).toArray()
+
+      const downPipeLine = [
+        {
+          $match:{
+            Alarm_Slogan:"CSL Fault"
+          }
+        },
+        {
+          $group: {
+            _id: "$Power_Status",
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $addFields: {
+            Power_Status: {
+              $cond: {
+                if: { $eq: ["$Power_Status", "CP+DG"] },
+                then: "DGPart",
+                else: "$Power_Status"
+              }
+            }
+          }
+        },
+        {
+          $sort:{
+            count:-1
+          }
+        },
+
+        {
+          $project: {
+            _id: 0,
+            Power_Status: "$_id",
+            count: -1,
+           
+          }
+        }
+      ]
+      const siteDownCount = await powerShutDownCollection.aggregate(downPipeLine).toArray()
+      const downDurationPipeLine= [
+        {
+          $match:{
+            Alarm_Slogan:"CSL Fault"
+          }
+        },
+        {
+          $bucket:{
+            groupBy:"$Active_for",
+            boundaries:[0,60,120,180,300],
+            default:"SD>6",
+            output:{ count:{$sum:1}}
+          }
+        },
+        {
+          $addFields: {
+            bucketName: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$_id", 0] }, then: "SD<1hr" },
+                  { case: { $eq: ["$_id", 60] }, then: "1<SD<2" },
+                  { case: { $eq: ["$_id", 120] }, then: "1<SD<2" },
+                  { case: { $eq: ["$_id", 180] }, then: "2<SD<3" },
+                  { case: { $eq: ["$_id", 300] }, then: "3<SD<5" },
+                ],
+                default: "SD>6"
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0, // Exclude the original _id field
+            bucketName: 1,
+            count: 1
+          }
+        }
+      ]
+      const downDurationCount = await powerShutDownCollection.aggregate(downDurationPipeLine).toArray()
+      const powerAlarmDurationPipeLine=[
+        {
+          $match:{
+            Alarm_Slogan:{ $in : ["MAINS FAIL","MAINS FAIL DELAY CKT ON","LOW VOLTAGE"]}
+          }
+        },
+        {
+          $bucket:{
+            groupBy:"$Active_for",
+            boundaries:[0,120,240,360],
+            default:"PW>6",
+            output:{ count:{$sum:1}}
+          }
+        },
+        {
+          $addFields: {
+            bucketName: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$_id", 0] }, then: "PW<2" },
+                  { case: { $eq: ["$_id", 120] }, then: "PW>2" },
+                  { case: { $eq: ["$_id", 240] }, then: "2<PW<4" },
+                  { case: { $eq: ["$_id", 360] }, then: "4<PW<6" },
+                  
+                ],
+                default: "SD>6"
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0, // Exclude the original _id field
+            bucketName: 1,
+            count: 1
+          }
+        }
+
+      ]
+      const powerDurationCount = await powerShutDownCollection.aggregate(powerAlarmDurationPipeLine).toArray()
+      const powerAlarmPipeLine= [
+        {
+          $match :
+          { Alarm_Slogan : 
+            {
+            $in:["MAINS FAIL","MAINS FAIL DELAY CKT ON","Genset On","LOW VOLTAGE"],
+            
+          }
+          }
+        },
+        {
+          $group :{
+            _id: "$Alarm_Slogan",
+            count : {$sum:1}
+          }
+        },
+        {
+          $sort:{
+            count:1
+          }
+        },
+        {
+          $project :{
+            _id:0,
+            powerAlarm: "$_id",
+            count:1
+          }
+        }
+      ]
+      const powerAlarmCount= await powerShutDownCollection.aggregate(powerAlarmPipeLine).toArray()
+      const result = await powerShutDownCollection.find({}).sort({ Site: -1 }).toArray()
+      res.json({totalPower:result,priorityCount:priorityCount,
+        siteDownCount,downDurationCount,powerDurationCount,
+        powerAlarmCount
+      })
+    })
+
+    app.delete("/powerShutDown",async(req,res)=>{
+      const result= await powerShutDownCollection.deleteMany({})
+      res.send(result)
     })
 
   } finally {
