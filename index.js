@@ -1088,8 +1088,8 @@ const run = async () => {
     app.get("/powerShutDown", async (req, res) => {
       const priorityPipeLine = [
         {
-          $match:{
-            Alarm_Slogan:"CSL Fault"
+          $match: {
+            Alarm_Slogan: "CSL Fault"
           }
         },
         {
@@ -1099,8 +1099,8 @@ const run = async () => {
           }
         },
         {
-          $sort:{
-            count:1
+          $sort: {
+            count: 1
           }
         },
         {
@@ -1115,8 +1115,8 @@ const run = async () => {
 
       const downPipeLine = [
         {
-          $match:{
-            Alarm_Slogan:"CSL Fault"
+          $match: {
+            Alarm_Slogan: "CSL Fault"
           }
         },
         {
@@ -1137,8 +1137,8 @@ const run = async () => {
           }
         },
         {
-          $sort:{
-            count:-1
+          $sort: {
+            count: -1
           }
         },
 
@@ -1147,23 +1147,23 @@ const run = async () => {
             _id: 0,
             Power_Status: "$_id",
             count: -1,
-           
+
           }
         }
       ]
       const siteDownCount = await powerShutDownCollection.aggregate(downPipeLine).toArray()
-      const downDurationPipeLine= [
+      const downDurationPipeLine = [
         {
-          $match:{
-            Alarm_Slogan:"CSL Fault"
+          $match: {
+            Alarm_Slogan: "CSL Fault"
           }
         },
         {
-          $bucket:{
-            groupBy:"$Active_for",
-            boundaries:[0,60,120,180,300],
-            default:"SD>6",
-            output:{ count:{$sum:1}}
+          $bucket: {
+            groupBy: "$Active_for",
+            boundaries: [0, 60, 120, 180, 300],
+            default: "SD>6",
+            output: { count: { $sum: 1 } }
           }
         },
         {
@@ -1173,11 +1173,11 @@ const run = async () => {
                 branches: [
                   { case: { $eq: ["$_id", 0] }, then: "SD<1hr" },
                   { case: { $eq: ["$_id", 60] }, then: "1<SD<2" },
-                  { case: { $eq: ["$_id", 120] }, then: "1<SD<2" },
-                  { case: { $eq: ["$_id", 180] }, then: "2<SD<3" },
-                  { case: { $eq: ["$_id", 300] }, then: "3<SD<5" },
+                  { case: { $eq: ["$_id", 120] }, then: "2<SD<3" },
+                  { case: { $eq: ["$_id", 180] }, then: "3<SD<5" },
+                /*   { case: { $eq: ["$_id", 300] }, then: "3<SD<5" }, */
                 ],
-                default: "SD>6"
+                default: "SD>5"
               }
             }
           }
@@ -1191,18 +1191,18 @@ const run = async () => {
         }
       ]
       const downDurationCount = await powerShutDownCollection.aggregate(downDurationPipeLine).toArray()
-      const powerAlarmDurationPipeLine=[
+      const powerAlarmDurationPipeLine = [
         {
-          $match:{
-            Alarm_Slogan:{ $in : ["MAINS FAIL","MAINS FAIL DELAY CKT ON","LOW VOLTAGE"]}
+          $match: {
+            Alarm_Slogan: { $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"] }
           }
         },
         {
-          $bucket:{
-            groupBy:"$Active_for",
-            boundaries:[0,120,240,360],
-            default:"PW>6",
-            output:{ count:{$sum:1}}
+          $bucket: {
+            groupBy: "$Active_for",
+            boundaries: [0, 120, 240, 360],
+            default: "PW>6",
+            output: { count: { $sum: 1 } }
           }
         },
         {
@@ -1211,10 +1211,10 @@ const run = async () => {
               $switch: {
                 branches: [
                   { case: { $eq: ["$_id", 0] }, then: "PW<2" },
-                  { case: { $eq: ["$_id", 120] }, then: "PW>2" },
-                  { case: { $eq: ["$_id", 240] }, then: "2<PW<4" },
-                  { case: { $eq: ["$_id", 360] }, then: "4<PW<6" },
-                  
+                  { case: { $eq: ["$_id", 120] }, then: "2<PW<4" },
+                  { case: { $eq: ["$_id", 240] }, then: "4<PW<6" },
+                 /*  { case: { $eq: ["$_id", 360] }, then: "4<PW<6" }, */
+
                 ],
                 default: "SD>6"
               }
@@ -1231,45 +1231,59 @@ const run = async () => {
 
       ]
       const powerDurationCount = await powerShutDownCollection.aggregate(powerAlarmDurationPipeLine).toArray()
-      const powerAlarmPipeLine= [
+      const powerAlarmPipeLine = [
         {
-          $match :
-          { Alarm_Slogan : 
+          $match:
+          {
+            Alarm_Slogan:
             {
-            $in:["MAINS FAIL","MAINS FAIL DELAY CKT ON","Genset On","LOW VOLTAGE"],
-            
-          }
+              $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON", "Genset On", "LOW VOLTAGE"],
+
+            }
           }
         },
         {
-          $group :{
+          $group: {
             _id: "$Alarm_Slogan",
-            count : {$sum:1}
+            count: { $sum: 1 }
           }
         },
         {
-          $sort:{
-            count:1
+          $sort: {
+            count: 1
           }
         },
         {
-          $project :{
-            _id:0,
+          $project: {
+            _id: 0,
             powerAlarm: "$_id",
-            count:1
+            count: 1
           }
         }
       ]
-      const powerAlarmCount= await powerShutDownCollection.aggregate(powerAlarmPipeLine).toArray()
-      const result = await powerShutDownCollection.find({}).sort({ Site: -1 }).toArray()
-      res.json({totalPower:result,priorityCount:priorityCount,
-        siteDownCount,downDurationCount,powerDurationCount,
+      const powerAlarmCount = await powerShutDownCollection.aggregate(powerAlarmPipeLine).toArray()
+      const pgPipeline = [
+        {
+          $project: {
+            BL_PG: 1,
+            Sup_PG: 1,
+            remarks:1
+          }
+        },
+        {
+          $limit:1
+        }
+      ];
+      const pgUtilize = await powerShutDownCollection.aggregate(pgPipeline).toArray()
+      res.json({
+        pgUtilization: pgUtilize, priorityCount: priorityCount,
+        siteDownCount, downDurationCount, powerDurationCount,
         powerAlarmCount
       })
     })
 
-    app.delete("/powerShutDown",async(req,res)=>{
-      const result= await powerShutDownCollection.deleteMany({})
+    app.delete("/powerShutDown", async (req, res) => {
+      const result = await powerShutDownCollection.deleteMany({})
       res.send(result)
     })
 
