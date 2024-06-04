@@ -1175,7 +1175,7 @@ const run = async () => {
                   { case: { $eq: ["$_id", 60] }, then: "1<SD<2" },
                   { case: { $eq: ["$_id", 120] }, then: "2<SD<3" },
                   { case: { $eq: ["$_id", 180] }, then: "3<SD<5" },
-                /*   { case: { $eq: ["$_id", 300] }, then: "3<SD<5" }, */
+                  /*   { case: { $eq: ["$_id", 300] }, then: "3<SD<5" }, */
                 ],
                 default: "SD>5"
               }
@@ -1213,10 +1213,10 @@ const run = async () => {
                   { case: { $eq: ["$_id", 0] }, then: "PW<2" },
                   { case: { $eq: ["$_id", 120] }, then: "2<PW<4" },
                   { case: { $eq: ["$_id", 240] }, then: "4<PW<6" },
-                 /*  { case: { $eq: ["$_id", 360] }, then: "4<PW<6" }, */
+                  /*  { case: { $eq: ["$_id", 360] }, then: "4<PW<6" }, */
 
                 ],
-                default: "SD>6"
+                default: "SW>6"
               }
             }
           }
@@ -1262,24 +1262,76 @@ const run = async () => {
         }
       ]
       const powerAlarmCount = await powerShutDownCollection.aggregate(powerAlarmPipeLine).toArray()
-      const pgPipeline = [
-        {
-          $project: {
-            BL_PG: 1,
-            Sup_PG: 1,
-            remarks:1
-          }
-        },
-        {
-          $limit:1
-        }
-      ];
-      const pgUtilize = await powerShutDownCollection.aggregate(pgPipeline).toArray()
+      
+      const pgUtilize = await powerShutDownCollection.find({ pgType: "pgRun" }).toArray()
+
       res.json({
         pgUtilization: pgUtilize, priorityCount: priorityCount,
         siteDownCount, downDurationCount, powerDurationCount,
-        powerAlarmCount
+        powerAlarmCount,
       })
+    })
+
+    app.get("/thanaWisePowerAlarm/:delay",async(req,res)=>{
+      const delayTime = req.params.delay
+      const delayTimeMints = (+delayTime)*60
+      const powerAlarmThanaPipeLine = [
+        {
+          $match: {
+            Alarm_Slogan: {
+
+              $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"],
+            },
+            Active_for:{
+              $gt:delayTimeMints
+            }
+          }
+        },
+        {
+          $group: {
+            _id: "$Thana",
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort:{
+            Thana:1
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            Thana: "$_id",
+            count: 1
+          }
+        }
+      ]
+
+      const powerAlarmThanaWise = await powerShutDownCollection.aggregate(powerAlarmThanaPipeLine).toArray()
+      res.send(powerAlarmThanaWise)
+    })
+
+    app.get("/lockRequest/:delay", async (req, res) => {
+      const delayTime = req.params.delay
+      const delayTimeNum = +delayTime
+      //console.log(delayTime)
+      const pipeline = [
+        {
+          $match: {
+            Active_for: {
+              $gt: delayTimeNum
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0
+          }
+        }
+      ]
+      const alarmData = await powerShutDownCollection.aggregate(pipeline).toArray()
+      //console.log(alarmData)
+      res.send(alarmData)
     })
 
     app.delete("/powerShutDown", async (req, res) => {
