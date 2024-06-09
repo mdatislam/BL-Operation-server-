@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { group } = require("console");
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -1262,8 +1263,8 @@ const run = async () => {
         }
       ]
       const powerAlarmCount = await powerShutDownCollection.aggregate(powerAlarmPipeLine).toArray()
-      
-      const pgUtilize = await powerShutDownCollection.find({ pgType: "pgRun" }).toArray()
+
+      const pgUtilize = await powerShutDownCollection.findOne({ pgType: "pgRun" })
 
       res.json({
         pgUtilization: pgUtilize, priorityCount: priorityCount,
@@ -1272,9 +1273,10 @@ const run = async () => {
       })
     })
 
-    app.get("/thanaWisePowerAlarm/:delay",async(req,res)=>{
+    app.get("/thanaWisePowerAlarm/:delay", async (req, res) => {
       const delayTime = req.params.delay
-      const delayTimeMints = (+delayTime)*60
+      //console.log(delayTime,districtName)
+      const delayTimeMints = (+delayTime) * 60
       const powerAlarmThanaPipeLine = [
         {
           $match: {
@@ -1282,44 +1284,73 @@ const run = async () => {
 
               $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"],
             },
-            Active_for:{
-              $gt:delayTimeMints
+            Active_for: {
+              $gt: delayTimeMints
             }
           }
         },
         {
           $group: {
-            _id: "$Thana",
+            _id: {
+              Thana: "$Thana",
+              District: "$District"
+            },
             count: { $sum: 1 }
+          },
+
+        },
+        {
+          $group: {
+            _id: "$_id.District",
+            Thanas: {
+              $push: {
+                Thana: "$_id.Thana",
+                count: "$count"
+              }
+            },
+            distCount: { $sum: "$count" }
           }
         },
         {
-          $sort:{
-            Thana:1
+          $unwind: "$Thanas"
+        },
+        {
+          $sort: {
+            "Thanas.Thana": 1
           }
         },
         {
           $project: {
             _id: 0,
-            Thana: "$_id",
-            count: 1
+            Thana: "$Thanas.Thana",
+            thanaCount: "$Thanas.count",
+            District: "$_id",
+            distCount: "$distCount"
           }
         }
+
       ]
 
       const powerAlarmThanaWise = await powerShutDownCollection.aggregate(powerAlarmThanaPipeLine).toArray()
+      // console.log(powerAlarmThanaWise)
       res.send(powerAlarmThanaWise)
     })
 
-    app.get("/lockRequest/:delay", async (req, res) => {
-      const delayTime = req.params.delay
-      const delayTimeNum = +delayTime
-      //console.log(delayTime)
+    app.get("/lockRequest", async (req, res) => {
+      const { lowTime, highTime } = req.query
+      const lowTimeMints = +lowTime
+      const highTimeMints = +highTime
+      //console.log(lowTimeMints,highTimeMints)
       const pipeline = [
         {
           $match: {
+            Alarm_Slogan: {
+
+              $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"],
+            },
             Active_for: {
-              $gt: delayTimeNum
+              $lt: highTimeMints,
+              $gt: lowTimeMints
             }
           }
         },
@@ -1329,7 +1360,7 @@ const run = async () => {
           }
         }
       ]
-      const alarmData = await powerShutDownCollection.aggregate(pipeline).toArray()
+      const alarmData = await powerShutDownCollection.aggregate(pipeline).toArray() 
       //console.log(alarmData)
       res.send(alarmData)
     })
