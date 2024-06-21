@@ -1277,7 +1277,7 @@ const run = async () => {
       const delayTime = req.params.delay
       //console.log(delayTime,districtName)
       const delayTimeMints = (+delayTime) * 60
-      const powerAlarmThanaPipeLine = [
+      /* const powerAlarmThanaPipeLine = [
         {
           $match: {
             Alarm_Slogan: {
@@ -1293,7 +1293,8 @@ const run = async () => {
           $group: {
             _id: {
               Thana: "$Thana",
-              District: "$District"
+              District: "$District",
+              Office: "$In_house_Office"
             },
             count: { $sum: 1 }
           },
@@ -1311,8 +1312,9 @@ const run = async () => {
             distCount: { $sum: "$count" }
           }
         },
+
         {
-          $unwind: "$Thanas"
+          $unwind: "$siteOffice"
         },
         {
           $sort: {
@@ -1327,9 +1329,82 @@ const run = async () => {
             District: "$_id",
             distCount: "$distCount"
           }
-        }
+        } 
 
-      ]
+      ] */
+      const powerAlarmThanaPipeLine = [
+        {
+          $match: {
+            Alarm_Slogan: {
+              $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"],
+            },
+            Active_for: {
+              $gt: delayTimeMints
+            }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              Thana: "$Thana",
+              District: "$District",
+              Office: "$In_house_Office"
+            },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              District: "$_id.District",
+              Office: "$_id.Office"
+            },
+            Thanas: {
+              $push: {
+                Thana: "$_id.Thana",
+                count: "$count"
+              }
+            },
+            officeCount: { $sum: "$count" }
+          }
+        },
+        {
+          $group: {
+            _id: "$_id.District",
+            Offices: {
+              $push: {
+                Office: "$_id.Office",
+                Thanas: "$Thanas",
+                officeCount: "$officeCount"
+              }
+            },
+            distCount: { $sum: "$officeCount" }
+          }
+        },
+         {
+          $unwind: "$Offices"
+        },
+        {
+          $unwind: "$Offices.Thanas"
+        },
+        {
+          $sort: {
+            "Offices.Office": 1,
+            "Offices.Thanas.Thana": 1
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            District: "$_id",
+            distCount: "$distCount",
+            Office: "$Offices.Office",
+            officeCount: "$Offices.officeCount",
+            Thana: "$Offices.Thanas.Thana",
+            thanaCount: "$Offices.Thanas.count"
+          }
+        } 
+      ];
 
       const powerAlarmThanaWise = await powerShutDownCollection.aggregate(powerAlarmThanaPipeLine).toArray()
       // console.log(powerAlarmThanaWise)
@@ -1360,9 +1435,38 @@ const run = async () => {
           }
         }
       ]
-      const alarmData = await powerShutDownCollection.aggregate(pipeline).toArray() 
+      const alarmData = await powerShutDownCollection.aggregate(pipeline).toArray()
       //console.log(alarmData)
       res.send(alarmData)
+    })
+
+    app.get("/thanaWiseDown",async(req,res)=>{
+      const thanaWiseDownPipeline=[
+        {
+          $match:{
+            Alarm_Slogan: {
+
+              $in: ["CSL Fault"],
+            },
+          }
+        },
+        {
+          $group:{
+            _id:"$Thana",
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $project:{
+            _id:0,
+            thana:"$_id",
+            downCount:"$count"
+          }
+        }
+
+      ]
+      const thanaWiseDown= await powerShutDownCollection.aggregate(thanaWiseDownPipeline).toArray()
+      res.send(thanaWiseDown)
     })
 
     app.delete("/powerShutDown", async (req, res) => {
