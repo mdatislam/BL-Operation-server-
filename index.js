@@ -289,6 +289,31 @@ const run = async () => {
       res.json(result);
     });
 
+    app.get("/chartPendingAllPgRun",async(req,res)=>{
+      const approvalPendingPipeline=[
+        {
+          $match:{
+            status:"Pending"
+          }
+        },
+        {
+          $group:{
+            _id:"$onCallName",
+            count:{$sum:1}
+          }
+        },
+        {
+          $project:{
+            _id:0,
+            name:"$_id",
+            pendingCount:"$count"
+          }
+        }
+      ]
+      const approvalPgRunPending= await pgRunDataCollection.aggregate(approvalPendingPipeline).toArray()
+      res.send(approvalPgRunPending)
+    })
+
     app.put("/pgRunList/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       //console.log(id)
