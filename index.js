@@ -225,16 +225,26 @@ const run = async () => {
     });
 
     app.get("/fuelListAll/count", verifyJWT, async (req, res) => {
-      const totalPgRunData = await fuelDataCollection.estimatedDocumentCount()
-      res.json({ lengthOfData: totalPgRunData })
+      const {firstDay,lastDay}=req.query
+      const filter = {date:{
+        $gte:firstDay,
+        $lte:lastDay
+      } };
+      const totalFuelReceived = await fuelDataCollection.find(filter).toArray()
+      const dataLength= totalFuelReceived.length
+      res.json({ lengthOfData: dataLength })
     })
 
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
-      const { page, size } = req.query
+      const { page, size,firstDay,lastDay } = req.query
+      const filter = {date:{
+        $gte:firstDay,
+        $lte:lastDay
+      } };
       const skipPage = (+page * size)
       const result = await fuelDataCollection
-        .find({}).skip(skipPage).limit(+size)
-        .sort({ date: -1, slipNo: -1 })
+        .find(filter).skip(skipPage).limit(+size)
+        .sort({ date: 1, slipNo: 1 })
         .toArray();
       res.json(result);
     });
@@ -266,16 +276,27 @@ const run = async () => {
       res.json(result);
     });
     app.get("/ApprovedAllPgRun/pageCount", verifyJWT, async (req, res) => {
-      const totalPgRunData = await pgRunDataCollection.estimatedDocumentCount()
-      res.json({ lengthPgRunData: totalPgRunData })
+      const {firstDay,lastDay}=req.query
+      const filter = { status: "Approved",date:{
+        $gte:firstDay,
+        $lte:lastDay
+      } };
+
+      const totalPgRunData = await pgRunDataCollection.find(filter).toArray()
+      const lengthData= totalPgRunData.length
+      res.json({ lengthPgRunData: lengthData })
     })
     app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
-      const { page, size } = req.query
+      const { page, size,firstDay,lastDay } = req.query 
+      //console.log(firstDay)
       const skipPage = (+page * size)
-      const filter = { status: "Approved" };
+      const filter = { status: "Approved",date:{
+        $gte:firstDay,
+        $lte:lastDay
+      } };
       const result = await pgRunDataCollection
         .find(filter).skip(skipPage).limit(+size)
-        .sort({ date: -1 })
+        .sort({ date:1 })
         .toArray();
       res.json(result);
     });
@@ -1364,7 +1385,8 @@ const run = async () => {
               $in: ["MAINS FAIL", "MAINS FAIL DELAY CKT ON"],
             },
             Active_for: {
-              $gt: delayTimeMints
+              $gt: delayTimeMints,
+              $lt:3000
             }
           }
         },
