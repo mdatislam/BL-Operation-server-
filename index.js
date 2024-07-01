@@ -111,6 +111,9 @@ const run = async () => {
     const powerShutDownCollection = client
       .db("BL-Operation")
       .collection("powerShutDown");
+    const spareCollection = client
+      .db("BL-Operation")
+      .collection("spare");
 
     /* Collection Part End */
 
@@ -1520,6 +1523,20 @@ const run = async () => {
       const result = await powerShutDownCollection.deleteMany({})
       res.send(result)
     })
+
+    /* Spare Api start from Here */
+    app.post("/spare",async(req,res)=>{
+      const spareInfo= req.body 
+      const spareAdd = await spareCollection.insertOne(spareInfo)
+      res.send(spareAdd)
+    })
+
+    app.get("/spare",async(req,res)=>{
+      const spareList = await spareCollection.find({}).toArray()
+      res.send(spareList)
+    })
+
+    /* Spare Api End from Here */
 
   } finally {
   }
