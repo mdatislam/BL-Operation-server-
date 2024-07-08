@@ -111,9 +111,12 @@ const run = async () => {
     const powerShutDownCollection = client
       .db("BL-Operation")
       .collection("powerShutDown");
-    const spareCollection = client
+    const NewAddSpareCollection = client
       .db("BL-Operation")
-      .collection("spare");
+      .collection("NewAddSpare");
+    const OwnSpareCollection = client
+      .db("BL-Operation")
+      .collection("OwnSpare");
 
     /* Collection Part End */
 
@@ -228,22 +231,26 @@ const run = async () => {
     });
 
     app.get("/fuelListAll/count", verifyJWT, async (req, res) => {
-      const {firstDay,lastDay}=req.query
-      const filter = {date:{
-        $gte:firstDay,
-        $lte:lastDay
-      } };
+      const { firstDay, lastDay } = req.query
+      const filter = {
+        date: {
+          $gte: firstDay,
+          $lte: lastDay
+        }
+      };
       const totalFuelReceived = await fuelDataCollection.find(filter).toArray()
-      const dataLength= totalFuelReceived.length
+      const dataLength = totalFuelReceived.length
       res.json({ lengthOfData: dataLength })
     })
 
     app.get("/fuelListAll", verifyJWT, async (req, res) => {
-      const { page, size,firstDay,lastDay } = req.query
-      const filter = {date:{
-        $gte:firstDay,
-        $lte:lastDay
-      } };
+      const { page, size, firstDay, lastDay } = req.query
+      const filter = {
+        date: {
+          $gte: firstDay,
+          $lte: lastDay
+        }
+      };
       const skipPage = (+page * size)
       const result = await fuelDataCollection
         .find(filter).skip(skipPage).limit(+size)
@@ -279,27 +286,31 @@ const run = async () => {
       res.json(result);
     });
     app.get("/ApprovedAllPgRun/pageCount", verifyJWT, async (req, res) => {
-      const {firstDay,lastDay}=req.query
-      const filter = { status: "Approved",date:{
-        $gte:firstDay,
-        $lte:lastDay
-      } };
+      const { firstDay, lastDay } = req.query
+      const filter = {
+        status: "Approved", date: {
+          $gte: firstDay,
+          $lte: lastDay
+        }
+      };
 
       const totalPgRunData = await pgRunDataCollection.find(filter).toArray()
-      const lengthData= totalPgRunData.length
+      const lengthData = totalPgRunData.length
       res.json({ lengthPgRunData: lengthData })
     })
     app.get("/ApprovedAllPgRun", verifyJWT, async (req, res) => {
-      const { page, size,firstDay,lastDay } = req.query 
+      const { page, size, firstDay, lastDay } = req.query
       //console.log(firstDay)
       const skipPage = (+page * size)
-      const filter = { status: "Approved",date:{
-        $gte:firstDay,
-        $lte:lastDay
-      } };
+      const filter = {
+        status: "Approved", date: {
+          $gte: firstDay,
+          $lte: lastDay
+        }
+      };
       const result = await pgRunDataCollection
         .find(filter).skip(skipPage).limit(+size)
-        .sort({ date:1 })
+        .sort({ date: 1 })
         .toArray();
       res.json(result);
     });
@@ -313,28 +324,28 @@ const run = async () => {
       res.json(result);
     });
 
-    app.get("/chartPendingAllPgRun",async(req,res)=>{
-      const approvalPendingPipeline=[
+    app.get("/chartPendingAllPgRun", async (req, res) => {
+      const approvalPendingPipeline = [
         {
-          $match:{
-            status:"Pending"
+          $match: {
+            status: "Pending"
           }
         },
         {
-          $group:{
-            _id:"$onCallName",
-            count:{$sum:1}
+          $group: {
+            _id: "$onCallName",
+            count: { $sum: 1 }
           }
         },
         {
-          $project:{
-            _id:0,
-            name:"$_id",
-            pendingCount:"$count"
+          $project: {
+            _id: 0,
+            name: "$_id",
+            pendingCount: "$count"
           }
         }
       ]
-      const approvalPgRunPending= await pgRunDataCollection.aggregate(approvalPendingPipeline).toArray()
+      const approvalPgRunPending = await pgRunDataCollection.aggregate(approvalPendingPipeline).toArray()
       res.send(approvalPgRunPending)
     })
 
@@ -1389,7 +1400,7 @@ const run = async () => {
             },
             Active_for: {
               $gt: delayTimeMints,
-              $lt:3000
+              $lt: 3000
             }
           }
         },
@@ -1431,7 +1442,7 @@ const run = async () => {
             distCount: { $sum: "$officeCount" }
           }
         },
-         {
+        {
           $unwind: "$Offices"
         },
         {
@@ -1453,7 +1464,7 @@ const run = async () => {
             Thana: "$Offices.Thanas.Thana",
             thanaCount: "$Offices.Thanas.count"
           }
-        } 
+        }
       ];
 
       const powerAlarmThanaWise = await powerShutDownCollection.aggregate(powerAlarmThanaPipeLine).toArray()
@@ -1490,10 +1501,10 @@ const run = async () => {
       res.send(alarmData)
     })
 
-    app.get("/thanaWiseDown",async(req,res)=>{
-      const thanaWiseDownPipeline=[
+    app.get("/thanaWiseDown", async (req, res) => {
+      const thanaWiseDownPipeline = [
         {
-          $match:{
+          $match: {
             Alarm_Slogan: {
 
               $in: ["CSL Fault"],
@@ -1501,21 +1512,21 @@ const run = async () => {
           }
         },
         {
-          $group:{
-            _id:"$Thana",
+          $group: {
+            _id: "$Thana",
             count: { $sum: 1 }
           }
         },
         {
-          $project:{
-            _id:0,
-            thana:"$_id",
-            downCount:"$count"
+          $project: {
+            _id: 0,
+            thana: "$_id",
+            downCount: "$count"
           }
         }
 
       ]
-      const thanaWiseDown= await powerShutDownCollection.aggregate(thanaWiseDownPipeline).toArray()
+      const thanaWiseDown = await powerShutDownCollection.aggregate(thanaWiseDownPipeline).toArray()
       res.send(thanaWiseDown)
     })
 
@@ -1525,15 +1536,70 @@ const run = async () => {
     })
 
     /* Spare Api start from Here */
-    app.post("/spare",async(req,res)=>{
-      const spareInfo= req.body 
-      const spareAdd = await spareCollection.insertOne(spareInfo)
+    app.post("/spare", async (req, res) => {
+      const spareInfo = req.body
+      const spareAdd = await NewAddSpareCollection.insertOne(spareInfo)
       res.send(spareAdd)
     })
 
-    app.get("/spare",async(req,res)=>{
-      const spareList = await spareCollection.find({}).toArray()
+    app.post("/ownSpare", async (req, res) => {
+      const spareInfo = req.body
+      const spareAdd = await OwnSpareCollection.insertOne(spareInfo)
+      res.send(spareAdd)
+    })
+
+    app.get("/spare", async (req, res) => {
+      const spareList = await NewAddSpareCollection.find({}).sort({ requisitionDate: -1 }).toArray()
       res.send(spareList)
+    })
+
+    app.get("/ownSpare", async (req, res) => {
+      const spareList = await OwnSpareCollection.find({}).sort({ requisitionDate: -1 }).project({ _id: 0 }).toArray()
+      res.send(spareList)
+    })
+
+    app.get("/ownSpare/stock", async (req, res) => {
+      const ownStockPipeLine = [
+        {
+          $group: {
+            _id: "$bomNo",
+            goodQuantity: { $sum: {$toInt:"$ownGoodStock"} },
+            faultyQuantity: { $sum: {$toInt:"$ownFaultyStock"} }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            BOM_No: "$_id",
+            goodQuantity:1,
+            faultyQuantity:1
+          }
+        }
+      ]
+      const ownStock = await OwnSpareCollection.aggregate(ownStockPipeLine).toArray()
+      res.send(ownStock)
+    })
+
+    app.put("/spare", async (req, res) => {
+      const modifyData = req.body
+      const spareId = new ObjectId(modifyData.id)
+      const filter = { _id: spareId }
+      const options = { upsert: true }
+      const finalQuantity = modifyData.goodQuantity
+      //console.log(modifyData)
+      const updateSpare = {
+        $set: { goodQuantity: finalQuantity },
+        $push: { replacement: modifyData }
+      }
+      const modifySpare = await NewAddSpareCollection.updateOne(filter, updateSpare, options)
+      res.send(modifyData)
+    })
+
+    app.get("/replacement/:id", async (req, res) => {
+      const queryId = req.params.id
+      const filter = { _id: new ObjectId(queryId) }
+      const replacementList = await NewAddSpareCollection.findOne(filter)
+      res.send(replacementList)
     })
 
     /* Spare Api End from Here */
