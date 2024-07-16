@@ -117,6 +117,9 @@ const run = async () => {
     const OwnSpareCollection = client
       .db("BL-Operation")
       .collection("OwnSpare");
+    const returnSpareCollection = client
+      .db("BL-Operation")
+      .collection("returnSpare");
 
     /* Collection Part End */
 
@@ -1548,13 +1551,24 @@ const run = async () => {
       res.send(spareAdd)
     })
 
+    app.post("/returnSpare", async (req, res) => {
+      const spareInfo = req.body
+      const spareAdd = await returnSpareCollection.insertOne(spareInfo)
+      res.send(spareAdd)
+    })
+
     app.get("/spare", async (req, res) => {
       const spareList = await NewAddSpareCollection.find({}).sort({ requisitionDate: -1 }).toArray()
       res.send(spareList)
     })
 
     app.get("/ownSpare", async (req, res) => {
-      const spareList = await OwnSpareCollection.find({}).sort({ requisitionDate: -1 }).project({ _id: 0 }).toArray()
+      const spareList = await OwnSpareCollection.find({}).sort({ date: -1 }).project({ _id: 0 }).toArray()
+      res.send(spareList)
+    })
+
+    app.get("/returnSpare", async (req, res) => {
+      const spareList = await returnSpareCollection.find({}).sort({ date: -1 }).project({ _id: 0 }).toArray()
       res.send(spareList)
     })
 
@@ -1563,21 +1577,64 @@ const run = async () => {
         {
           $group: {
             _id: "$bomNo",
-            goodQuantity: { $sum: {$toInt:"$ownGoodStock"} },
-            faultyQuantity: { $sum: {$toInt:"$ownFaultyStock"} }
+            ownGoodQuantity: { $sum: { $toInt: "$ownGoodStock" } },
+            ownFaultyQuantity: { $sum: { $toInt: "$ownFaultyStock" } }
           }
         },
         {
           $project: {
             _id: 0,
             BOM_No: "$_id",
-            goodQuantity:1,
-            faultyQuantity:1
+            ownGoodQuantity: 1,
+            ownFaultyQuantity: 1
           }
         }
       ]
       const ownStock = await OwnSpareCollection.aggregate(ownStockPipeLine).toArray()
       res.send(ownStock)
+    })
+
+    app.get("/newSpare/stock", async (req, res) => {
+      const newStockPipeLine = [
+        {
+          $group: {
+            _id: "$bomNo",
+            newGoodQuantity: { $sum: { $toInt: "$spmsGoodQuantity" } },
+            newFaultyQuantity: { $sum: { $toInt: "$spmsFaultyQuantity" } }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            BOM_No: "$_id",
+            newGoodQuantity: 1,
+            newFaultyQuantity: 1
+          }
+        }
+      ]
+      const newStock = await NewAddSpareCollection.aggregate(newStockPipeLine).toArray()
+      res.send(newStock)
+    })
+    app.get("/returnSpare/pending", async (req, res) => {
+      const returnPipeLine = [
+        {
+          $group: {
+            _id: "$bomNo",
+            returnQuantity: { $sum: { $toInt: "$returnQuantity" } },
+           
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            bomNo: "$_id",
+            returnQuantity: 1,
+            
+          }
+        }
+      ]
+      const spareReturn = await returnSpareCollection.aggregate(returnPipeLine).toArray()
+      res.send(spareReturn)
     })
 
     app.put("/spare", async (req, res) => {
@@ -1588,10 +1645,30 @@ const run = async () => {
       const finalQuantity = modifyData.goodQuantity
       //console.log(modifyData)
       const updateSpare = {
-        $set: { goodQuantity: finalQuantity },
+        $set: {
+          spmsGoodQuantity: modifyData.goodQuantity,
+          spmsFaultyQuantity: modifyData.faultyQuantity,
+        },
         $push: { replacement: modifyData }
       }
       const modifySpare = await NewAddSpareCollection.updateOne(filter, updateSpare, options)
+      res.send(modifyData)
+    })
+
+    app.put("/ownSpare", async (req, res) => {
+      const modifyData = req.body
+      //console.log(modifyData);
+      const spareBomNo = modifyData.bomNo
+      const filter = { bomNo: spareBomNo }
+      const options = { upsert: true }
+      const updateSpare = {
+        $set: {
+          ownGoodStock: modifyData.goodStock,
+          ownFaultyStock: modifyData.faultyStock
+        },
+        $push: { replacement: modifyData }
+      }
+      const modifySpare = await OwnSpareCollection.updateOne(filter, updateSpare, options)
       res.send(modifyData)
     })
 
@@ -1601,6 +1678,8 @@ const run = async () => {
       const replacementList = await NewAddSpareCollection.findOne(filter)
       res.send(replacementList)
     })
+
+
 
     /* Spare Api End from Here */
 
