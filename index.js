@@ -5,6 +5,7 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { group } = require("console");
+const { pipeline } = require("stream");
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -1615,24 +1616,34 @@ const run = async () => {
       const newStock = await NewAddSpareCollection.aggregate(newStockPipeLine).toArray()
       res.send(newStock)
     })
+
     app.get("/returnSpare/pending", async (req, res) => {
+
       const returnPipeLine = [
         {
           $group: {
             _id: "$bomNo",
-            returnQuantity: { $sum: { $toInt: "$returnQuantity" } },
-           
+            faultyReturnQuantity: {
+              $sum: {
+                $cond: [{ $eq: ["$spareStatus", "Faulty"] }, { $toInt: "$returnQuantity" }, 0]
+              }
+            },
+            goodReturnQuantity: {
+              $sum: {
+                $cond: [{ $eq: ["$spareStatus", "Good_Return"] }, { $toInt: "$returnQuantity" }, 0]
+              }
+            }
           }
         },
         {
           $project: {
             _id: 0,
             bomNo: "$_id",
-            returnQuantity: 1,
-            
+            faultyReturnQuantity: 1,
+            goodReturnQuantity: 1
           }
         }
-      ]
+      ];
       const spareReturn = await returnSpareCollection.aggregate(returnPipeLine).toArray()
       res.send(spareReturn)
     })
@@ -1677,6 +1688,56 @@ const run = async () => {
       const filter = { _id: new ObjectId(queryId) }
       const replacementList = await NewAddSpareCollection.findOne(filter)
       res.send(replacementList)
+    })
+
+    app.get("/spare/spareSummary", async (req, res) => {
+      const spareSummaryPipeLine = [
+        
+        {
+          $lookup: {
+            from: "returnSpare",
+            localField: "bomNo",
+            foreignField: "bomNo",
+            as: "returnSpareInfo"
+
+          }
+        },
+        {
+          $unwind:"$returnSpareInfo"
+        },
+         {
+          $group:{
+            _id:"$bomNo",
+            totalSpmsGood: { $sum: { $toInt: "$spmsGoodQuantity" } },
+            totalSpmsFaulty: { $sum: { $toInt: "$spmsFaultyQuantity" } },
+            totalReturn: { $sum: { $toInt: "$returnSpareInfo.returnQuantity" } },
+            totalGoodReturn:{$sum: {
+              $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Good_Return"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
+            }},
+            totalFaultyReturn:{$sum: {
+              $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Faulty"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
+            }}
+            
+          }
+        },
+      
+       
+          {
+            $project: {
+            _id: 0,
+            bomNo: "$_id",
+            totalSpmsGood: 1,
+            totalSpmsFaulty: 1,
+            totalReturn: 1,
+            totalGoodReturn:1,
+            totalFaultyReturn:1
+            
+          }
+        }   
+      ]
+
+      result = await NewAddSpareCollection.aggregate(spareSummaryPipeLine).toArray()
+      res.send(result)
     })
 
 
