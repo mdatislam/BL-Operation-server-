@@ -121,6 +121,9 @@ const run = async () => {
     const returnSpareCollection = client
       .db("BL-Operation")
       .collection("returnSpare");
+    const spareListCollection = client
+      .db("BL-Operation")
+      .collection("spareList");
 
     /* Collection Part End */
 
@@ -1540,6 +1543,7 @@ const run = async () => {
     })
 
     /* Spare Api start from Here */
+    
     app.post("/spare", async (req, res) => {
       const spareInfo = req.body
       const spareAdd = await NewAddSpareCollection.insertOne(spareInfo)
@@ -1556,6 +1560,10 @@ const run = async () => {
       const spareInfo = req.body
       const spareAdd = await returnSpareCollection.insertOne(spareInfo)
       res.send(spareAdd)
+    })
+    app.get("/spare/spareBomList", async (req, res) => {
+      const spareList = await spareListCollection.find({}).sort({ spareName: 1 }).toArray()
+      res.send(spareList)
     })
 
     app.get("/spare", async (req, res) => {
@@ -1646,6 +1654,20 @@ const run = async () => {
       ];
       const spareReturn = await returnSpareCollection.aggregate(returnPipeLine).toArray()
       res.send(spareReturn)
+    })
+
+    app.put("/spare/spareList",async(req,res)=>{
+      const modifyData = req.body
+      const newBomNo = modifyData.bomNo
+      //console.log(newBomNo)
+      const filter = { bomNo: newBomNo }
+      const options = { upsert: true }
+      const updateSpare = {
+        $set: modifyData
+      
+      }
+      const modifySpare = await spareListCollection.updateOne(filter, updateSpare, options)
+      res.send(modifyData)
     })
 
     app.put("/spare", async (req, res) => {
