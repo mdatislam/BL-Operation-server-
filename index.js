@@ -1543,7 +1543,7 @@ const run = async () => {
     })
 
     /* Spare Api start from Here */
-    
+
     app.post("/spare", async (req, res) => {
       const spareInfo = req.body
       const spareAdd = await NewAddSpareCollection.insertOne(spareInfo)
@@ -1567,17 +1567,17 @@ const run = async () => {
     })
 
     app.get("/spare", async (req, res) => {
-      const spareList = await NewAddSpareCollection.find({}).sort({ requisitionDate: -1 }).toArray()
+      const spareList = await NewAddSpareCollection.find({}).sort({requisitionDate:-1 }).toArray()
       res.send(spareList)
     })
 
     app.get("/ownSpare", async (req, res) => {
-      const spareList = await OwnSpareCollection.find({}).sort({ date: -1 }).project({ _id: 0 }).toArray()
+      const spareList = await OwnSpareCollection.find({}).sort({ date: -1 }).toArray()
       res.send(spareList)
     })
 
     app.get("/returnSpare", async (req, res) => {
-      const spareList = await returnSpareCollection.find({}).sort({ date: -1 }).project({ _id: 0 }).toArray()
+      const spareList = await returnSpareCollection.find({}).sort({ date: 1 }).toArray()
       res.send(spareList)
     })
 
@@ -1656,7 +1656,7 @@ const run = async () => {
       res.send(spareReturn)
     })
 
-    app.put("/spare/spareList",async(req,res)=>{
+    app.put("/spare/spareList", async (req, res) => {
       const modifyData = req.body
       const newBomNo = modifyData.bomNo
       //console.log(newBomNo)
@@ -1664,7 +1664,7 @@ const run = async () => {
       const options = { upsert: true }
       const updateSpare = {
         $set: modifyData
-      
+
       }
       const modifySpare = await spareListCollection.updateOne(filter, updateSpare, options)
       res.send(modifyData)
@@ -1714,54 +1714,92 @@ const run = async () => {
 
     app.get("/spare/spareSummary", async (req, res) => {
       const spareSummaryPipeLine = [
-        
+
+        {
+          $group: {
+            _id: "$bomNo",
+            SpmsGood: { $sum: { $toInt: "$spmsGoodQuantity" } },
+            SpmsFaulty: { $sum: { $toInt: "$spmsFaultyQuantity" } },
+          }
+        },
+
         {
           $lookup: {
             from: "returnSpare",
-            localField: "bomNo",
+            localField: "_id",
             foreignField: "bomNo",
             as: "returnSpareInfo"
 
           }
         },
         {
-          $unwind:"$returnSpareInfo"
+          $unwind: "$returnSpareInfo"
         },
-         {
-          $group:{
-            _id:"$bomNo",
-            totalSpmsGood: { $sum: { $toInt: "$spmsGoodQuantity" } },
-            totalSpmsFaulty: { $sum: { $toInt: "$spmsFaultyQuantity" } },
-            totalReturn: { $sum: { $toInt: "$returnSpareInfo.returnQuantity" } },
-            totalGoodReturn:{$sum: {
-              $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Good_Return"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
-            }},
-            totalFaultyReturn:{$sum: {
-              $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Faulty"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
-            }}
-            
-          }
-        },
-      
-       
+        {
+          $addFields:
           {
-            $project: {
-            _id: 0,
-            bomNo: "$_id",
-            totalSpmsGood: 1,
-            totalSpmsFaulty: 1,
-            totalReturn: 1,
-            totalGoodReturn:1,
-            totalFaultyReturn:1
-            
+            returnInfo:{
+              totalReturn: { $sum: { $toInt: "$returnSpareInfo.returnQuantity" } },
+          totalGoodReturn:{$sum: {
+            $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Good_Return"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
+          }},
+          totalFaultyReturn:{$sum: {
+            $cond: [{ $eq: ["$returnSpareInfo.spareStatus", "Faulty"] }, { $toInt: "$returnSpareInfo.returnQuantity" }, 0]
+          }}
+            }
           }
-        }   
+        },
+
+         {
+        $group:{
+          _id:"$_id",
+          totalSpmsGood: {$avg: "$SpmsGood" },
+          totalSpmsFaulty: {$avg:"$SpmsFaulty" },
+          totalReturn: { $sum: "$returnInfo.totalReturn" },
+          totalGoodReturn:{$sum:"$returnInfo.totalGoodReturn"},
+          totalFaultyReturn:{$sum: "$returnInfo.totalFaultyReturn" }
+          }
+      },
+   
+      
+        {
+          $project: {
+          _id: 0,
+          bomNo: "$_id",
+          totalSpmsGood: 1,
+          totalSpmsFaulty: 1,
+          totalReturn: 1,
+          totalGoodReturn:1,
+          totalFaultyReturn:1
+         
+        }
+      }   
       ]
 
       result = await NewAddSpareCollection.aggregate(spareSummaryPipeLine).toArray()
       res.send(result)
     })
 
+    
+    app.delete("/spare/returnSpare/:id", async (req, res) => {
+      //console.log(req.params.id);
+      const filter = { _id: new ObjectId(req.params.id) }
+      const result = await returnSpareCollection.deleteOne(filter)
+      res.json(result)
+    })
+
+    app.delete("/spare/newSpare/:id", async (req, res) => {
+      //console.log(req.params.id);
+      const filter = { _id: new ObjectId(req.params.id) }
+      const result = await NewAddSpareCollection.deleteOne(filter)
+      res.json(result)
+    })
+    app.delete("/spare/ownSpare/:id", async (req, res) => {
+      //console.log(req.params.id);
+      const filter = { _id: new ObjectId(req.params.id) }
+      const result = await OwnSpareCollection.deleteOne(filter)
+      res.json(result)
+    })
 
 
     /* Spare Api End from Here */
